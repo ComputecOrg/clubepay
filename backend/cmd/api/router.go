@@ -53,6 +53,9 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 
 		r.Get("/api/subscriptions", h.ListSubscriptions)
 		r.Delete("/api/subscriptions/{id}", h.CancelSubscriptionByOwner)
+
+		r.Get("/api/subscribers/search", h.SearchSubscribers)
+		r.Post("/api/validate-usage-owner", h.ValidateUsageByOwner)
 	})
 
 	// Subscriber routes
