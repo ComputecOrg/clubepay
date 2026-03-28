@@ -206,6 +206,90 @@ func TestWebhook_NoSubscriptionField(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
+func TestWebhook_PaymentRefunded(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "whrefund@test.com", "WH Refund Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "WH Refund Cafe", "wh-refund-cafe")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "WH Refund Plan", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "whrefundsub@test.com", "WH Refund Sub", "11999990006")
+
+	// Create active subscription
+	sub, err := h.Queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan.ID,
+		SubscriberID:      subscriber.ID,
+		BusinessID:        biz.ID,
+		PspSubscriptionID: pgtype.Text{String: "sub_refund_123", Valid: true},
+		Status:            "active",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+
+	// Send PAYMENT_REFUNDED webhook
+	payload := map[string]interface{}{
+		"event": "PAYMENT_REFUNDED",
+		"payment": map[string]interface{}{
+			"subscription": "sub_refund_123",
+			"status":       "REFUNDED",
+		},
+	}
+	b, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/psp/webhook", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.PSPWebhook(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	// Verify subscription was cancelled
+	updated, err := h.Queries.GetSubscriptionByID(context.Background(), sub.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "cancelled", updated.Status)
+}
+
+func TestWebhook_PaymentReceived(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "whreceived@test.com", "WH Received Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "WH Received Cafe", "wh-received-cafe")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "WH Received Plan", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "whreceivedsub@test.com", "WH Received Sub", "11999990007")
+
+	// Create subscription in blocked status
+	sub, err := h.Queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan.ID,
+		SubscriberID:      subscriber.ID,
+		BusinessID:        biz.ID,
+		PspSubscriptionID: pgtype.Text{String: "sub_received_123", Valid: true},
+		Status:            "blocked",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+
+	// Send PAYMENT_RECEIVED webhook — should reactivate if blocked
+	payload := map[string]interface{}{
+		"event": "PAYMENT_RECEIVED",
+		"payment": map[string]interface{}{
+			"subscription": "sub_received_123",
+			"status":       "RECEIVED",
+		},
+	}
+	b, _ := json.Marshal(payload)
+	req := httptest.NewRequest(http.MethodPost, "/api/psp/webhook", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.PSPWebhook(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	// Verify subscription was reactivated
+	updated, err := h.Queries.GetSubscriptionByID(context.Background(), sub.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "active", updated.Status)
+}
+
 func TestWebhook_InvalidSignature(t *testing.T) {
 	pool := testutil.SetupTestDB(t)
 	queries := repository.New(pool)

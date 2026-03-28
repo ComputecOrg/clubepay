@@ -227,6 +227,41 @@ func TestValidateUsage_MonthlyLimit(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, rr3.Code)
 }
 
+func TestValidateUsage_CancelledSubscription(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "cancelledowner@test.com", "Cancelled Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café Cancelled", "cafe-cancelled-usage")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano Cancelled", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "cancelledsub@test.com", "Cancelled Sub", "11999994800")
+
+	// Create subscription then cancel it
+	sub, err := h.Queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan.ID,
+		SubscriberID:      subscriber.ID,
+		BusinessID:        biz.ID,
+		PspSubscriptionID: pgtype.Text{String: "psp_cancelled_1", Valid: true},
+		Status:            "active",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+
+	err = h.Queries.CancelSubscription(context.Background(), sub.ID)
+	require.NoError(t, err)
+
+	body := map[string]string{"business_slug": "cafe-cancelled-usage"}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/validate-usage", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.ValidateUsage(rr, req)
+
+	// GetActiveSubscription only returns active/grace — cancelled → not found → 404
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
 func TestMyUsage_MissingSlug(t *testing.T) {
 	h := setupHandler(t)
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "myusagenoslug@test.com", "MyUsage NoSlug Sub", "11999994500")

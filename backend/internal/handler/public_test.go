@@ -124,6 +124,44 @@ func TestGetPublicPlans_Success(t *testing.T) {
 	assert.Len(t, resp, 1)
 }
 
+func TestGetPublicPlans_EmptyList(t *testing.T) {
+	h := setupHandler(t)
+
+	// Register owner (business created, but no plans)
+	regBody := map[string]interface{}{
+		"email":         "pubplansempty@example.com",
+		"password":      "password123",
+		"name":          "Pub Plans Empty Owner",
+		"business_name": "Café Sem Planos",
+		"segment":       "cafeteria",
+	}
+	rb, _ := json.Marshal(regBody)
+	regReq := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(rb))
+	regReq.Header.Set("Content-Type", "application/json")
+	regRr := httptest.NewRecorder()
+	h.RegisterOwner(regRr, regReq)
+	require.Equal(t, http.StatusCreated, regRr.Code)
+
+	var regResp map[string]interface{}
+	require.NoError(t, json.NewDecoder(regRr.Body).Decode(&regResp))
+	bizMap := regResp["business"].(map[string]interface{})
+	slug := bizMap["slug"].(string)
+
+	// GET public plans — business exists but has no plans
+	req := httptest.NewRequest(http.MethodGet, "/api/public/plans/"+slug, nil)
+	r := chi.NewRouter()
+	r.Get("/api/public/plans/{slug}", h.GetPublicPlans)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var resp []interface{}
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
+	assert.Len(t, resp, 0)
+}
+
 func TestGetPublicPlans_NotFound(t *testing.T) {
 	h := setupHandler(t)
 

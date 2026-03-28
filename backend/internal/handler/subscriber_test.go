@@ -101,6 +101,22 @@ func TestMyPlan_BusinessNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
+func TestCancelBySubscriber_BusinessNotFound(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "selfcancelnobiz@test.com", "SelfCancel NoBiz Sub", "11999998700")
+
+	body := map[string]string{"business_slug": "nonexistent-biz-slug"}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/cancel", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.CancelBySubscriber(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
 func TestCancelBySubscriber_InvalidJSON(t *testing.T) {
 	h := setupHandler(t)
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "selfcanceljson@test.com", "SelfCancel JSON Sub", "11999998500")

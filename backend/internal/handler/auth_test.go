@@ -442,6 +442,18 @@ func TestRegisterSubscriber_ShortPassword(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+func TestRegisterSubscriber_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register-subscriber", bytes.NewReader([]byte(`{invalid json`)))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.RegisterSubscriber(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestRegisterSubscriber_MissingFields(t *testing.T) {
 	h := setupHandler(t)
 

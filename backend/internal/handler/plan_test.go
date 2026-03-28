@@ -429,6 +429,86 @@ func TestDeletePlan_NotFound(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, rr.Code)
 }
 
+// ---- UpdatePlan invalid ID / body tests ----
+
+func TestUpdatePlan_InvalidID(t *testing.T) {
+	h := setupHandler(t)
+	userID, _ := registerOwnerAndGetIDs(t, h, "updateplan-invalidid@example.com", "UpdatePlan InvalidID Café")
+
+	updateBody := map[string]interface{}{
+		"name":        "Plano",
+		"price_cents": 2990,
+		"limit_type":  "daily",
+		"limit_count": 1,
+	}
+	ub, _ := json.Marshal(updateBody)
+	updateReq := httptest.NewRequest(http.MethodPut, "/api/plans/abc", bytes.NewReader(ub))
+	updateReq.Header.Set("Content-Type", "application/json")
+	updateReq = withAuth(updateReq, userID, "owner")
+
+	r := chi.NewRouter()
+	r.Put("/api/plans/{id}", h.UpdatePlan)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, updateReq)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdatePlan_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+	userID, _ := registerOwnerAndGetIDs(t, h, "updateplan-invalidjson@example.com", "UpdatePlan InvalidJSON Café")
+
+	// Create a plan first so we have a valid ID
+	planBody := map[string]interface{}{
+		"name":        "Plano para JSON Inválido",
+		"price_cents": 2990,
+		"limit_type":  "daily",
+		"limit_count": 1,
+	}
+	pb, _ := json.Marshal(planBody)
+	createReq := httptest.NewRequest(http.MethodPost, "/api/plans", bytes.NewReader(pb))
+	createReq.Header.Set("Content-Type", "application/json")
+	createReq = withAuth(createReq, userID, "owner")
+	createRr := httptest.NewRecorder()
+	h.CreatePlan(createRr, createReq)
+	require.Equal(t, http.StatusCreated, createRr.Code)
+
+	var createdPlan map[string]interface{}
+	require.NoError(t, json.NewDecoder(createRr.Body).Decode(&createdPlan))
+	planID := int64(createdPlan["id"].(float64))
+
+	updateReq := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/plans/%d", planID), bytes.NewReader([]byte(`{invalid json`)))
+	updateReq.Header.Set("Content-Type", "application/json")
+	updateReq = withAuth(updateReq, userID, "owner")
+
+	r := chi.NewRouter()
+	r.Put("/api/plans/{id}", h.UpdatePlan)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, updateReq)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+// ---- DeletePlan invalid ID test ----
+
+func TestDeletePlan_InvalidID(t *testing.T) {
+	h := setupHandler(t)
+	userID, _ := registerOwnerAndGetIDs(t, h, "deleteplan-invalidid@example.com", "DeletePlan InvalidID Café")
+
+	deleteReq := httptest.NewRequest(http.MethodDelete, "/api/plans/abc", nil)
+	deleteReq = withAuth(deleteReq, userID, "owner")
+
+	r := chi.NewRouter()
+	r.Delete("/api/plans/{id}", h.DeletePlan)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, deleteReq)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestDeletePlan_WrongBusiness(t *testing.T) {
 	h := setupHandler(t)
 

@@ -146,6 +146,55 @@ func TestReconcile_NoExpiredGrace(t *testing.T) {
 	assert.Equal(t, float64(0), resp["blocked"])
 }
 
+func TestReconcile_SyncsPendingToInactive(t *testing.T) {
+	pool := testutil.SetupTestDB(t)
+	queries := repository.New(pool)
+	cfg := &config.Config{
+		JWTSecret:  "test-secret-key",
+		CronSecret: "test-cron-secret",
+	}
+	mockPSP := &psp.MockPSP{
+		GetSubscriptionFn: func(ctx context.Context, subscriptionID string) (*psp.Subscription, error) {
+			return &psp.Subscription{ID: subscriptionID, Status: "INACTIVE"}, nil
+		},
+	}
+	h := handler.New(queries, cfg, mockPSP)
+
+	owner := testutil.SeedOwner(t, queries, "croninactive@test.com", "Cron Inactive Owner")
+	biz := testutil.SeedBusiness(t, queries, owner.ID, "Cron Inactive Cafe", "cron-inactive-cafe")
+	plan := testutil.SeedPlan(t, queries, biz.ID, "Cron Inactive Plan", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, queries, "croninactivesub@test.com", "Cron Inactive Sub", "11999990005")
+
+	// Create subscription with status "pending"
+	sub, err := queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan.ID,
+		SubscriberID:      subscriber.ID,
+		BusinessID:        biz.ID,
+		PspSubscriptionID: pgtype.Text{String: "sub_pending_inactive", Valid: true},
+		Status:            "pending",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+
+	// Run reconcile — PSP returns INACTIVE → should map to "cancelled"
+	req := httptest.NewRequest(http.MethodPost, "/api/cron/reconcile", nil)
+	req.Header.Set("X-Cron-Secret", "test-cron-secret")
+	rr := httptest.NewRecorder()
+
+	h.Reconcile(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var resp map[string]interface{}
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
+	assert.Equal(t, float64(1), resp["synced"])
+
+	// Verify subscription status was changed to "cancelled"
+	updated, err := queries.GetSubscriptionByID(context.Background(), sub.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "cancelled", updated.Status)
+}
+
 func TestReconcile_InvalidSecret(t *testing.T) {
 	pool := testutil.SetupTestDB(t)
 	queries := repository.New(pool)

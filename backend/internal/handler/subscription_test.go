@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
 	"github.com/clubepay/backend/internal/testutil"
 )
@@ -301,6 +302,50 @@ func TestCancelSubscriptionByOwner_WrongBusiness(t *testing.T) {
 	r.ServeHTTP(cancelRr, cancelReq)
 
 	assert.Equal(t, http.StatusForbidden, cancelRr.Code)
+}
+
+func TestCancelSubscriptionByOwner_InvalidID(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "cancelinvalidid@test.com", "Cancel InvalidID Owner")
+	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café InvalidID Cancel", "cafe-cancel-invalidid")
+
+	r := chi.NewRouter()
+	r.Delete("/api/subscriptions/{id}", h.CancelSubscriptionByOwner)
+
+	cancelReq := httptest.NewRequest(http.MethodDelete, "/api/subscriptions/abc", nil)
+	cancelReq = withAuth(cancelReq, owner.ID, "owner")
+	cancelRr := httptest.NewRecorder()
+	r.ServeHTTP(cancelRr, cancelReq)
+
+	assert.Equal(t, http.StatusBadRequest, cancelRr.Code)
+}
+
+func TestSubscribe_PSPCustomerError(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "pspcustomerr@test.com", "PSP Customer Err Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café PSP Err", "cafe-psp-customer-err")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano PSP Err", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "pspcustomerrsub@test.com", "PSP Err Sub", "11999993600")
+
+	// Override PSP to return error on CreateCustomer
+	h.PSP = &psp.MockPSP{
+		CreateCustomerFn: func(ctx context.Context, req psp.CreateCustomerRequest) (*psp.Customer, error) {
+			return nil, fmt.Errorf("psp unavailable")
+		},
+	}
+
+	body := map[string]interface{}{"plan_id": plan.ID}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, req)
+
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 }
 
 func TestListSubscriptions_NoBusiness(t *testing.T) {
