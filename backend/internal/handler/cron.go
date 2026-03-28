@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -38,6 +39,17 @@ func (h *Handler) Reconcile(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		blockedCount++
+
+		if h.Email != nil {
+			subscriber, err := h.Queries.GetUserByID(ctx, sub.SubscriberID)
+			if err == nil {
+				h.Email.Send(
+					subscriber.Email,
+					"ClubePay - Assinatura bloqueada",
+					fmt.Sprintf("Ola %s,\n\nSua assinatura foi bloqueada por falta de pagamento.\nPor favor, regularize seu pagamento para continuar usando o servico.\n\nEquipe ClubePay", subscriber.Name),
+				)
+			}
+		}
 	}
 
 	// 2. Sync pending subscriptions with PSP

@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
@@ -302,7 +303,7 @@ func TestWebhook_InvalidSignature(t *testing.T) {
 			return false // Always reject
 		},
 	}
-	h := handler.New(queries, cfg, mockPSP)
+	h := handler.New(queries, cfg, mockPSP, &email.MockSender{})
 
 	payload := map[string]interface{}{
 		"event": "PAYMENT_CONFIRMED",

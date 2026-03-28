@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
@@ -27,7 +28,8 @@ func TestReconcile_BlocksExpiredGrace(t *testing.T) {
 		CronSecret: "test-cron-secret",
 	}
 	mockPSP := &psp.MockPSP{}
-	h := handler.New(queries, cfg, mockPSP)
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
 
 	// Seed owner, business, plan, subscriber
 	owner := testutil.SeedOwner(t, queries, "cronowner@test.com", "Cron Owner")
@@ -85,7 +87,8 @@ func TestReconcile_SyncsPendingSubscription(t *testing.T) {
 			return &psp.Subscription{ID: subscriptionID, Status: "ACTIVE"}, nil
 		},
 	}
-	h := handler.New(queries, cfg, mockPSP)
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
 
 	owner := testutil.SeedOwner(t, queries, "cronpending@test.com", "Cron Pending Owner")
 	biz := testutil.SeedBusiness(t, queries, owner.ID, "Cron Pending Cafe", "cron-pending-cafe")
@@ -130,7 +133,8 @@ func TestReconcile_NoExpiredGrace(t *testing.T) {
 		CronSecret: "test-cron-secret",
 	}
 	mockPSP := &psp.MockPSP{}
-	h := handler.New(queries, cfg, mockPSP)
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
 
 	// Run reconcile with no expired grace subscriptions
 	req := httptest.NewRequest(http.MethodPost, "/api/cron/reconcile", nil)
@@ -158,7 +162,8 @@ func TestReconcile_SyncsPendingToInactive(t *testing.T) {
 			return &psp.Subscription{ID: subscriptionID, Status: "INACTIVE"}, nil
 		},
 	}
-	h := handler.New(queries, cfg, mockPSP)
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
 
 	owner := testutil.SeedOwner(t, queries, "croninactive@test.com", "Cron Inactive Owner")
 	biz := testutil.SeedBusiness(t, queries, owner.ID, "Cron Inactive Cafe", "cron-inactive-cafe")
@@ -203,7 +208,8 @@ func TestReconcile_InvalidSecret(t *testing.T) {
 		CronSecret: "test-cron-secret",
 	}
 	mockPSP := &psp.MockPSP{}
-	h := handler.New(queries, cfg, mockPSP)
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/cron/reconcile", nil)
 	req.Header.Set("X-Cron-Secret", "wrong-secret")

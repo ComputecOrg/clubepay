@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/psp"
@@ -28,7 +29,8 @@ func setupHandler(t *testing.T) *handler.Handler {
 		JWTSecret: "test-secret-key",
 	}
 	mockPSP := &psp.MockPSP{}
-	return handler.New(queries, cfg, mockPSP)
+	mockEmail := &email.MockSender{}
+	return handler.New(queries, cfg, mockPSP, mockEmail)
 }
 
 // withAuth injects auth context (userID, role) into a request for testing authenticated endpoints.

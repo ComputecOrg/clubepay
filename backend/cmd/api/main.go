@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
@@ -55,8 +56,19 @@ func main() {
 		slog.Warn("ASAAS_API_KEY not set, using mock PSP client")
 	}
 
+	// Create email sender
+	var emailSender email.Sender
+	smtpSender := email.NewSMTP(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword)
+	if smtpSender != nil {
+		emailSender = smtpSender
+		slog.Info("using SMTP email sender")
+	} else {
+		emailSender = &email.MockSender{}
+		slog.Warn("SMTP not configured, using mock email sender")
+	}
+
 	// Wire handler
-	h := handler.New(queries, cfg, pspClient)
+	h := handler.New(queries, cfg, pspClient, emailSender)
 
 	// Setup router
 	router := setupRouter(cfg, h)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
@@ -28,7 +29,7 @@ func setupBrokenHandler(t *testing.T) *handler.Handler {
 		JWTSecret:  "test-secret",
 		CronSecret: "test-cron-secret",
 	}
-	return handler.New(q, cfg, &psp.MockPSP{})
+	return handler.New(q, cfg, &psp.MockPSP{}, &email.MockSender{})
 }
 
 // Tests that hit internal server error branches (DB unavailable)

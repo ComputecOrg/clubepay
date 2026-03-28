@@ -13,6 +13,10 @@ type Config struct {
 	AsaasURL           string
 	CronSecret         string
 	AsaasWebhookSecret string
+	SMTPHost           string
+	SMTPPort           string
+	SMTPUsername       string
+	SMTPPassword       string
 }
 
 func Load() (*Config, error) {
@@ -24,6 +28,10 @@ func Load() (*Config, error) {
 		AsaasURL:    getEnv("ASAAS_URL", "https://sandbox.asaas.com/api/v3"),
 		CronSecret:         os.Getenv("CRON_SECRET"),
 		AsaasWebhookSecret: os.Getenv("ASAAS_WEBHOOK_SECRET"),
+		SMTPHost:           os.Getenv("SMTP_HOST"),
+		SMTPPort:           getEnv("SMTP_PORT", "587"),
+		SMTPUsername:       os.Getenv("SMTP_USERNAME"),
+		SMTPPassword:       os.Getenv("SMTP_PASSWORD"),
 	}
 
 	if cfg.DatabaseURL == "" {

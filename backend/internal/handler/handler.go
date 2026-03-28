@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
 )
@@ -17,10 +18,11 @@ type Handler struct {
 	Queries *repository.Queries
 	Config  *config.Config
 	PSP     psp.PSP
+	Email   email.Sender
 }
 
-func New(q *repository.Queries, cfg *config.Config, p psp.PSP) *Handler {
-	return &Handler{Queries: q, Config: cfg, PSP: p}
+func New(q *repository.Queries, cfg *config.Config, p psp.PSP, e email.Sender) *Handler {
+	return &Handler{Queries: q, Config: cfg, PSP: p, Email: e}
 }
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
