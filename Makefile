@@ -1,4 +1,4 @@
-.PHONY: dev-backend dev-frontend test-backend test-frontend test migrate-up migrate-down sqlc
+.PHONY: dev-backend dev-frontend test-backend test-frontend test migrate-up migrate-down sqlc docker-up docker-down docker-logs
 
 # Development
 dev-backend:
@@ -42,3 +42,13 @@ docker-backend:
 
 docker-frontend:
 	docker build -f Dockerfile.frontend -t clubepay-web .
+
+# Docker Compose
+docker-up:
+	docker compose up -d
+
+docker-down:
+	docker compose down
+
+docker-logs:
+	docker compose logs -f

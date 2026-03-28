@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: clubepay
+      POSTGRES_PASSWORD: clubepay
+      POSTGRES_DB: clubepay_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://clubepay:clubepay@postgres:5432/clubepay_dev?sslmode=disable
+      JWT_SECRET: dev-secret-change-in-production
+      PORT: "8080"
+      ASAAS_URL: https://sandbox.asaas.com/api/v3
+      CRON_SECRET: dev-cron-secret
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
