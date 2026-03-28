@@ -13,60 +13,20 @@ import (
 	"github.com/clubepay/backend/internal/repository"
 )
 
-// registerOwnerRequest holds the JSON body for RegisterOwner.
-type registerOwnerRequest struct {
-	Email        string `json:"email"`
-	Password     string `json:"password"`
-	Name         string `json:"name"`
-	BusinessName string `json:"business_name"`
-	Segment      string `json:"segment"`
-	Phone        string `json:"phone"`
-}
-
-// loginRequest holds the JSON body for Login.
-type loginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-// registerSubscriberRequest holds the JSON body for RegisterSubscriber.
-type registerSubscriberRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Phone    string `json:"phone"`
-}
-
 // RegisterOwner creates an owner user and a business, then returns a JWT.
 // POST /api/auth/register
 func (h *Handler) RegisterOwner(w http.ResponseWriter, r *http.Request) {
-	var req registerOwnerRequest
+	var req domain.RegisterOwnerInput
 	if err := readJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	// Validate required fields
-	if req.Email == "" {
-		writeError(w, http.StatusBadRequest, "email is required")
+	if err := domain.Validate(req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if req.Password == "" {
-		writeError(w, http.StatusBadRequest, "password is required")
-		return
-	}
-	if len(req.Password) < 8 {
-		writeError(w, http.StatusBadRequest, "password must be at least 8 characters")
-		return
-	}
-	if req.Name == "" {
-		writeError(w, http.StatusBadRequest, "name is required")
-		return
-	}
-	if req.BusinessName == "" {
-		writeError(w, http.StatusBadRequest, "business_name is required")
-		return
-	}
+
 	if req.Segment == "" {
 		req.Segment = "cafeteria"
 	}
@@ -131,18 +91,14 @@ func (h *Handler) RegisterOwner(w http.ResponseWriter, r *http.Request) {
 // Login authenticates a user and returns a JWT.
 // POST /api/auth/login
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var req loginRequest
+	var req domain.LoginInput
 	if err := readJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if req.Email == "" {
-		writeError(w, http.StatusBadRequest, "email is required")
-		return
-	}
-	if req.Password == "" {
-		writeError(w, http.StatusBadRequest, "password is required")
+	if err := domain.Validate(req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -186,26 +142,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 // RegisterSubscriber creates a subscriber user and returns a long-lived JWT (30 days).
 // POST /api/auth/register-subscriber
 func (h *Handler) RegisterSubscriber(w http.ResponseWriter, r *http.Request) {
-	var req registerSubscriberRequest
+	var req domain.RegisterSubscriberInput
 	if err := readJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if req.Email == "" {
-		writeError(w, http.StatusBadRequest, "email is required")
-		return
-	}
-	if req.Password == "" {
-		writeError(w, http.StatusBadRequest, "password is required")
-		return
-	}
-	if len(req.Password) < 8 {
-		writeError(w, http.StatusBadRequest, "password must be at least 8 characters")
-		return
-	}
-	if req.Name == "" {
-		writeError(w, http.StatusBadRequest, "name is required")
+	if err := domain.Validate(req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
