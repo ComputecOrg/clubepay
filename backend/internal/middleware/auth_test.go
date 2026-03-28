@@ -105,6 +105,11 @@ func TestCORS_Preflight(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
 
+func TestContextKeyExports(t *testing.T) {
+	assert.NotEmpty(t, middleware.UserIDContextKey())
+	assert.NotEmpty(t, middleware.RoleContextKey())
+}
+
 func TestAuth_MalformedHeader(t *testing.T) {
 	handler := middleware.Auth("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Fatal("should not be called")

@@ -55,12 +55,6 @@ func (h *Handler) ValidateUsage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check subscription status
-	if sub.Status == "blocked" || sub.Status == "cancelled" {
-		writeError(w, http.StatusForbidden, "assinatura não está ativa")
-		return
-	}
-
 	// Get plan
 	plan, err := h.Queries.GetPlanByID(r.Context(), sub.PlanID)
 	if err != nil {
