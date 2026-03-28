@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
 import { getToken, clearToken } from "@/lib/auth";
 import StatsCard from "@/components/StatsCard";
+import BusinessQRCode from "@/components/QRCode";
 
 interface Business {
   id: string;
@@ -171,6 +172,8 @@ export default function DashboardPage() {
           <StatsCard label="MRR" value={formatMRR(subscriptions)} />
           <StatsCard label="Adimplência" value={`${adimplencia}%`} />
         </div>
+
+        {business && <BusinessQRCode slug={business.slug} />}
 
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
