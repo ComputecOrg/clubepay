@@ -123,3 +123,16 @@ func TestGetPublicPlans_Success(t *testing.T) {
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
 	assert.Len(t, resp, 1)
 }
+
+func TestGetPublicPlans_NotFound(t *testing.T) {
+	h := setupHandler(t)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/public/plans/nonexistent-slug-xyz", nil)
+	r := chi.NewRouter()
+	r.Get("/api/public/plans/{slug}", h.GetPublicPlans)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}

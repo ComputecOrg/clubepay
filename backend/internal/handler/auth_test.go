@@ -345,6 +345,103 @@ func TestRegisterSubscriber_DuplicateEmail(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, rr2.Code)
 }
 
+func TestRegisterOwner_ShortPassword(t *testing.T) {
+	h := setupHandler(t)
+
+	body := map[string]string{
+		"email":         "shortpw@example.com",
+		"password":      "short",
+		"name":          "Short PW Owner",
+		"business_name": "Short PW Café",
+		"segment":       "cafeteria",
+	}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.RegisterOwner(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestRegisterOwner_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader([]byte(`{invalid json`)))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.RegisterOwner(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestLogin_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/login", bytes.NewReader([]byte(`{invalid json`)))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.Login(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestLogin_MissingFields(t *testing.T) {
+	h := setupHandler(t)
+
+	tests := []struct {
+		name string
+		body map[string]string
+	}{
+		{
+			name: "missing email",
+			body: map[string]string{
+				"password": "password123",
+			},
+		},
+		{
+			name: "missing password",
+			body: map[string]string{
+				"email": "test@example.com",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			b, _ := json.Marshal(tc.body)
+			req := httptest.NewRequest(http.MethodPost, "/api/auth/login", bytes.NewReader(b))
+			req.Header.Set("Content-Type", "application/json")
+			rr := httptest.NewRecorder()
+
+			h.Login(rr, req)
+
+			assert.Equal(t, http.StatusBadRequest, rr.Code)
+		})
+	}
+}
+
+func TestRegisterSubscriber_ShortPassword(t *testing.T) {
+	h := setupHandler(t)
+
+	body := map[string]string{
+		"email":    "subshortpw@example.com",
+		"password": "short",
+		"name":     "Short PW Sub",
+	}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register-subscriber", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.RegisterSubscriber(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
 func TestRegisterSubscriber_MissingFields(t *testing.T) {
 	h := setupHandler(t)
 

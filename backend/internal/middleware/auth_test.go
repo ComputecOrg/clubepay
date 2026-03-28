@@ -82,3 +82,36 @@ func TestRequireRole_Allowed(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code)
 }
+
+func TestCORS_SetHeaders(t *testing.T) {
+	handler := middleware.CORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	req := httptest.NewRequest("GET", "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, "*", rr.Header().Get("Access-Control-Allow-Origin"))
+	assert.Contains(t, rr.Header().Get("Access-Control-Allow-Methods"), "GET")
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestCORS_Preflight(t *testing.T) {
+	handler := middleware.CORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("should not call next handler for OPTIONS")
+	}))
+	req := httptest.NewRequest("OPTIONS", "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestAuth_MalformedHeader(t *testing.T) {
+	handler := middleware.Auth("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("should not be called")
+	}))
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "NotBearer token")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}

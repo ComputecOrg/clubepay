@@ -65,6 +65,58 @@ func TestGetBusiness_NotFound(t *testing.T) {
 
 // ---- UpdateBusiness tests ----
 
+func TestUpdateBusiness_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+
+	// Register an owner first so the business lookup succeeds
+	regBody := map[string]string{
+		"email":         "updatebiz-badjson@example.com",
+		"password":      "password123",
+		"name":          "Bad JSON Owner",
+		"business_name": "Bad JSON Café",
+		"segment":       "cafeteria",
+	}
+	b, _ := json.Marshal(regBody)
+	regReq := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(b))
+	regReq.Header.Set("Content-Type", "application/json")
+	regRr := httptest.NewRecorder()
+	h.RegisterOwner(regRr, regReq)
+	require.Equal(t, http.StatusCreated, regRr.Code)
+
+	var regResp map[string]interface{}
+	require.NoError(t, json.NewDecoder(regRr.Body).Decode(&regResp))
+	userMap := regResp["user"].(map[string]interface{})
+	userID := int64(userMap["id"].(float64))
+
+	req := httptest.NewRequest(http.MethodPut, "/api/business", bytes.NewReader([]byte(`{invalid json`)))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, userID, "owner")
+	rr := httptest.NewRecorder()
+
+	h.UpdateBusiness(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestUpdateBusiness_NotFound(t *testing.T) {
+	h := setupHandler(t)
+
+	// Use a user ID that has no associated business
+	updateBody := map[string]string{
+		"name":    "Nonexistent Business",
+		"segment": "cafeteria",
+	}
+	ub, _ := json.Marshal(updateBody)
+	req := httptest.NewRequest(http.MethodPut, "/api/business", bytes.NewReader(ub))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, 999999, "owner")
+	rr := httptest.NewRecorder()
+
+	h.UpdateBusiness(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
 func TestUpdateBusiness_Success(t *testing.T) {
 	h := setupHandler(t)
 
