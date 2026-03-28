@@ -1,0 +1,84 @@
+package middleware_test
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/clubepay/backend/internal/domain"
+	"github.com/clubepay/backend/internal/middleware"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestAuthMiddleware_ValidToken(t *testing.T) {
+	secret := "test-secret"
+	token, _ := domain.GenerateJWT(1, "owner", secret, 1*time.Hour)
+
+	handler := middleware.Auth(secret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.UserIDFromContext(r.Context())
+		role := middleware.RoleFromContext(r.Context())
+		assert.Equal(t, int64(1), userID)
+		assert.Equal(t, "owner", role)
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestAuthMiddleware_NoToken(t *testing.T) {
+	handler := middleware.Auth("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("handler should not be called")
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestAuthMiddleware_InvalidToken(t *testing.T) {
+	handler := middleware.Auth("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("handler should not be called")
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "Bearer invalid-token")
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestRequireRole_Forbidden(t *testing.T) {
+	secret := "test-secret"
+	token, _ := domain.GenerateJWT(1, "subscriber", secret, 1*time.Hour)
+
+	handler := middleware.Auth(secret)(middleware.RequireRole("owner")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("handler should not be called")
+	})))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusForbidden, rr.Code)
+}
+
+func TestRequireRole_Allowed(t *testing.T) {
+	secret := "test-secret"
+	token, _ := domain.GenerateJWT(1, "owner", secret, 1*time.Hour)
+
+	handler := middleware.Auth(secret)(middleware.RequireRole("owner")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
