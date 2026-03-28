@@ -6,12 +6,13 @@ import (
 )
 
 type Config struct {
-	Port        string
-	DatabaseURL string
-	JWTSecret   string
-	AsaasAPIKey string
-	AsaasURL    string
-	CronSecret  string
+	Port               string
+	DatabaseURL        string
+	JWTSecret          string
+	AsaasAPIKey        string
+	AsaasURL           string
+	CronSecret         string
+	AsaasWebhookSecret string
 }
 
 func Load() (*Config, error) {
@@ -21,7 +22,8 @@ func Load() (*Config, error) {
 		JWTSecret:   os.Getenv("JWT_SECRET"),
 		AsaasAPIKey: os.Getenv("ASAAS_API_KEY"),
 		AsaasURL:    getEnv("ASAAS_URL", "https://sandbox.asaas.com/api/v3"),
-		CronSecret:  os.Getenv("CRON_SECRET"),
+		CronSecret:         os.Getenv("CRON_SECRET"),
+		AsaasWebhookSecret: os.Getenv("ASAAS_WEBHOOK_SECRET"),
 	}
 
 	if cfg.DatabaseURL == "" {

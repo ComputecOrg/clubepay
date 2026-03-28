@@ -9,7 +9,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/handler"
+	"github.com/clubepay/backend/internal/psp"
+	"github.com/clubepay/backend/internal/repository"
 )
 
 func main() {
@@ -22,7 +27,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := setupRouter(cfg)
+	// Connect to PostgreSQL
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
+	if err != nil {
+		slog.Error("failed to connect to database", "error", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
+		slog.Error("failed to ping database", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("connected to database")
+
+	// Create repository queries
+	queries := repository.New(pool)
+
+	// Create PSP client (real Asaas or mock for dev)
+	var pspClient psp.PSP
+	if cfg.AsaasAPIKey != "" {
+		pspClient = psp.NewAsaas(cfg.AsaasURL, cfg.AsaasAPIKey, cfg.AsaasWebhookSecret)
+		slog.Info("using Asaas PSP client")
+	} else {
+		pspClient = &psp.MockPSP{}
+		slog.Warn("ASAAS_API_KEY not set, using mock PSP client")
+	}
+
+	// Wire handler
+	h := handler.New(queries, cfg, pspClient)
+
+	// Setup router
+	router := setupRouter(cfg, h)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
@@ -45,10 +82,10 @@ func main() {
 	<-quit
 
 	slog.Info("shutting down server")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		slog.Error("server forced to shutdown", "error", err)
 	}
 
