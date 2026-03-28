@@ -3,6 +3,7 @@ package handler_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -63,6 +64,120 @@ func TestMyReferralCode_SameCodeTwice(t *testing.T) {
 
 	// Same code
 	assert.Equal(t, resp1["code"], resp2["code"])
+}
+
+func TestMyReferralCode_MissingSlug(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "refnoslug@test.com", "Ref NoSlug Sub", "11999990400")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.MyReferralCode(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestMyReferralCode_BusinessNotFound(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "refnobiz@test.com", "Ref NoBiz Sub", "11999990500")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=nonexistent", nil)
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.MyReferralCode(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
+func TestApplyReferral_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "applyjson@test.com", "Apply JSON Sub", "11999990600")
+
+	req := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader([]byte(`{invalid json`)))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.ApplyReferral(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestApplyReferral_EmptyCode(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "applyempty@test.com", "Apply Empty Sub", "11999990700")
+
+	body := map[string]string{"code": ""}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.ApplyReferral(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestApplyReferral_CodeNotFound(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "applynotfound@test.com", "Apply NotFound Sub", "11999990800")
+
+	body := map[string]string{"code": "nonexistent"}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.ApplyReferral(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
+func TestApplyReferral_ReferralLimit(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "reflimitowner@test.com", "Ref Limit Owner")
+	_ = testutil.SeedBusiness(t, h.Queries, owner.ID, "Café RefLimit", "cafe-reflimit")
+
+	// Referrer gets their code
+	referrer := testutil.SeedSubscriber(t, h.Queries, "reflimiter@test.com", "Ref Limiter", "11999990900")
+	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-reflimit", nil)
+	codeReq = withAuth(codeReq, referrer.ID, "subscriber")
+	codeRr := httptest.NewRecorder()
+	h.MyReferralCode(codeRr, codeReq)
+	require.Equal(t, http.StatusOK, codeRr.Code)
+
+	var codeResp map[string]string
+	require.NoError(t, json.NewDecoder(codeRr.Body).Decode(&codeResp))
+	referralCode := codeResp["code"]
+
+	// Apply the code 3 times (hits the limit: template record + 3 referrals = count > referralLimit=3)
+	for i := 0; i < 3; i++ {
+		referred := testutil.SeedSubscriber(t, h.Queries, fmt.Sprintf("reflimitreferred%d@test.com", i), fmt.Sprintf("Referred %d", i), fmt.Sprintf("1199999100%d", i))
+		ab, _ := json.Marshal(map[string]string{"code": referralCode})
+		applyReq := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(ab))
+		applyReq.Header.Set("Content-Type", "application/json")
+		applyReq = withAuth(applyReq, referred.ID, "subscriber")
+		applyRr := httptest.NewRecorder()
+		h.ApplyReferral(applyRr, applyReq)
+		require.Equal(t, http.StatusOK, applyRr.Code, "referral %d should succeed", i+1)
+	}
+
+	// 4th application should fail — referral limit reached
+	referred4 := testutil.SeedSubscriber(t, h.Queries, "reflimitreferred4@test.com", "Referred 4", "11999991004")
+	ab4, _ := json.Marshal(map[string]string{"code": referralCode})
+	applyReq4 := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(ab4))
+	applyReq4.Header.Set("Content-Type", "application/json")
+	applyReq4 = withAuth(applyReq4, referred4.ID, "subscriber")
+	applyRr4 := httptest.NewRecorder()
+	h.ApplyReferral(applyRr4, applyReq4)
+
+	assert.Equal(t, http.StatusForbidden, applyRr4.Code)
 }
 
 func TestApplyReferral_SelfReferral(t *testing.T) {

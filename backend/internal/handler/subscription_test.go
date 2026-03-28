@@ -180,3 +180,140 @@ func TestCancelSubscriptionByOwner_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusNoContent, cancelRr.Code)
 }
+
+func TestSubscribe_InvalidJSON(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "subjson@test.com", "JSON Sub", "11999993100")
+
+	req := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader([]byte(`{invalid json`)))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestSubscribe_MissingPlanID(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "subnoplan@test.com", "NoPlan Sub", "11999993200")
+
+	body := map[string]interface{}{"plan_id": 0}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestSubscribe_PlanNotFound(t *testing.T) {
+	h := setupHandler(t)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "subnotfound@test.com", "NotFound Sub", "11999993300")
+
+	body := map[string]interface{}{"plan_id": 999999}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, req)
+
+	assert.Equal(t, http.StatusNotFound, rr.Code)
+}
+
+func TestSubscribe_PlanInactive(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "inactiveplanowner@test.com", "Inactive Plan Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café Inactive", "cafe-inactive-plan")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano Inativo", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "inactiveplansub@test.com", "Inactive Plan Sub", "11999993400")
+
+	// Deactivate the plan
+	err := h.Queries.DeactivatePlan(context.Background(), plan.ID)
+	require.NoError(t, err)
+
+	body := map[string]interface{}{"plan_id": plan.ID}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	req = withAuth(req, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, req)
+
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestCancelSubscriptionByOwner_NotFound(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "cancelnotfound@test.com", "Cancel NotFound Owner")
+	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café NotFound Cancel", "cafe-cancel-notfound")
+
+	r := chi.NewRouter()
+	r.Delete("/api/subscriptions/{id}", h.CancelSubscriptionByOwner)
+
+	cancelReq := httptest.NewRequest(http.MethodDelete, "/api/subscriptions/999999", nil)
+	cancelReq = withAuth(cancelReq, owner.ID, "owner")
+	cancelRr := httptest.NewRecorder()
+	r.ServeHTTP(cancelRr, cancelReq)
+
+	assert.Equal(t, http.StatusNotFound, cancelRr.Code)
+}
+
+func TestCancelSubscriptionByOwner_WrongBusiness(t *testing.T) {
+	h := setupHandler(t)
+
+	// Owner1 creates a business and a subscriber
+	owner1 := testutil.SeedOwner(t, h.Queries, "cancelowner1@test.com", "Owner1 Cancel")
+	biz1 := testutil.SeedBusiness(t, h.Queries, owner1.ID, "Café Owner1", "cafe-owner1-cancel")
+	plan1 := testutil.SeedPlan(t, h.Queries, biz1.ID, "Plano Owner1", 2990, "daily", 1)
+	subscriber1 := testutil.SeedSubscriber(t, h.Queries, "sub1cancel@test.com", "Sub1 Cancel", "11999993500")
+
+	// Create a subscription for owner1's business
+	sub, err := h.Queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan1.ID,
+		SubscriberID:      subscriber1.ID,
+		BusinessID:        biz1.ID,
+		PspSubscriptionID: pgtype.Text{String: "sub_cancel_wrong", Valid: true},
+		Status:            "active",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+
+	// Owner2 tries to cancel owner1's subscriber's subscription
+	owner2 := testutil.SeedOwner(t, h.Queries, "cancelowner2@test.com", "Owner2 Cancel")
+	testutil.SeedBusiness(t, h.Queries, owner2.ID, "Café Owner2", "cafe-owner2-cancel")
+
+	r := chi.NewRouter()
+	r.Delete("/api/subscriptions/{id}", h.CancelSubscriptionByOwner)
+
+	cancelReq := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/api/subscriptions/%d", sub.ID), nil)
+	cancelReq = withAuth(cancelReq, owner2.ID, "owner")
+	cancelRr := httptest.NewRecorder()
+	r.ServeHTTP(cancelRr, cancelReq)
+
+	assert.Equal(t, http.StatusForbidden, cancelRr.Code)
+}
+
+func TestListSubscriptions_NoBusiness(t *testing.T) {
+	h := setupHandler(t)
+
+	// Owner with no business registered
+	owner := testutil.SeedOwner(t, h.Queries, "nobizowner@test.com", "NoBiz Owner")
+
+	listReq := httptest.NewRequest(http.MethodGet, "/api/subscriptions", nil)
+	listReq = withAuth(listReq, owner.ID, "owner")
+	listRr := httptest.NewRecorder()
+
+	h.ListSubscriptions(listRr, listReq)
+
+	assert.Equal(t, http.StatusNotFound, listRr.Code)
+}
