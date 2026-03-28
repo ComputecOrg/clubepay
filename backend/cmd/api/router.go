@@ -18,6 +18,7 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
 	r.Use(middleware.CORS)
+	r.Use(middleware.Logging)
 
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
