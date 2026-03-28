@@ -158,6 +158,14 @@ export default function DashboardPage() {
           </Link>
         )}
 
+        <Link
+          href="/planos"
+          className="block w-full rounded-2xl py-4 text-center text-lg font-bold border-2 transition-colors hover:bg-gray-50"
+          style={{ borderColor: "#2a7d6e", color: "#2a7d6e" }}
+        >
+          Gerenciar planos
+        </Link>
+
         <div className="grid grid-cols-3 gap-4">
           <StatsCard label="Assinantes ativos" value={activeCount} />
           <StatsCard label="MRR" value={formatMRR(subscriptions)} />
