@@ -46,8 +46,9 @@ func TestGetBusiness_Success(t *testing.T) {
 
 	var resp map[string]interface{}
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
-	assert.Equal(t, "Get Biz Café", resp["name"])
-	assert.NotEmpty(t, resp["slug"])
+	biz := resp["business"].(map[string]interface{})
+	assert.Equal(t, "Get Biz Café", biz["name"])
+	assert.NotEmpty(t, biz["slug"])
 }
 
 func TestGetBusiness_NotFound(t *testing.T) {

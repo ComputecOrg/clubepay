@@ -24,7 +24,7 @@ func (h *Handler) GetBusiness(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, biz)
+	writeJSON(w, http.StatusOK, map[string]interface{}{"business": biz})
 }
 
 // UpdateBusiness updates editable fields of the authenticated owner's business.

@@ -105,7 +105,7 @@ func (h *Handler) ListPlans(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, plans)
+	writeJSON(w, http.StatusOK, map[string]interface{}{"plans": plans})
 }
 
 // UpdatePlan updates an existing plan by ID. Verifies the plan belongs to the owner's business.

@@ -140,11 +140,13 @@ func TestListSubscriptions_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, listRr.Code)
 
-	var resp []map[string]interface{}
+	var resp struct {
+		Subscriptions []map[string]interface{} `json:"subscriptions"`
+	}
 	require.NoError(t, json.NewDecoder(listRr.Body).Decode(&resp))
-	assert.Len(t, resp, 1)
-	assert.Equal(t, "List Sub", resp[0]["subscriber_name"])
-	assert.Equal(t, "Plano List", resp[0]["plan_name"])
+	assert.Len(t, resp.Subscriptions, 1)
+	assert.Equal(t, "List Sub", resp.Subscriptions[0]["subscriber_name"])
+	assert.Equal(t, "Plano List", resp.Subscriptions[0]["plan_name"])
 }
 
 func TestCancelSubscriptionByOwner_Success(t *testing.T) {

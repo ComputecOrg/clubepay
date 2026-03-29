@@ -119,9 +119,11 @@ func TestGetPublicPlans_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 
-	var resp []interface{}
+	var resp struct {
+		Plans []interface{} `json:"plans"`
+	}
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
-	assert.Len(t, resp, 1)
+	assert.Len(t, resp.Plans, 1)
 }
 
 func TestGetPublicPlans_EmptyList(t *testing.T) {
@@ -157,9 +159,11 @@ func TestGetPublicPlans_EmptyList(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, rr.Code)
 
-	var resp []interface{}
-	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
-	assert.Len(t, resp, 0)
+	var resp2 struct {
+		Plans []interface{} `json:"plans"`
+	}
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp2))
+	assert.Len(t, resp2.Plans, 0)
 }
 
 func TestGetPublicPlans_NotFound(t *testing.T) {

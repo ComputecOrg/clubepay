@@ -236,9 +236,11 @@ func TestListPlans_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, listRr.Code)
 
-	var resp []interface{}
+	var resp struct {
+		Plans []interface{} `json:"plans"`
+	}
 	require.NoError(t, json.NewDecoder(listRr.Body).Decode(&resp))
-	assert.Len(t, resp, 1)
+	assert.Len(t, resp.Plans, 1)
 }
 
 // ---- UpdatePlan tests ----

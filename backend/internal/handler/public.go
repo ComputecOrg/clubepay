@@ -67,5 +67,5 @@ func (h *Handler) GetPublicPlans(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, plans)
+	writeJSON(w, http.StatusOK, map[string]interface{}{"plans": plans})
 }

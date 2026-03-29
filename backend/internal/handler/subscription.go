@@ -146,7 +146,7 @@ func (h *Handler) ListSubscriptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, subs)
+	writeJSON(w, http.StatusOK, map[string]interface{}{"subscriptions": subs})
 }
 
 // CancelSubscriptionByOwner cancels a subscription by the owner.
