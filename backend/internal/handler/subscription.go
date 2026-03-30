@@ -12,13 +12,12 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
 )
-
-const freeTierSubscriberLimit = 15
 
 // Subscribe creates a new subscription for the authenticated subscriber.
 // POST /api/subscribe
@@ -73,7 +72,7 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "erro ao contar assinantes")
 		return
 	}
-	if count >= int64(freeTierSubscriberLimit) {
+	if count >= int64(domain.FreeTierSubscriberLimit) {
 		writeError(w, http.StatusForbidden, "limite de assinantes atingido no plano gratuito")
 		return
 	}
@@ -104,7 +103,7 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		BusinessID: plan.BusinessID,
 	})
 	if refErr == nil {
-		discountPercent = 10
+		discountPercent = domain.ReferralDiscountPercent
 	}
 
 	// Calculate discounted price

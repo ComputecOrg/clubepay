@@ -68,7 +68,7 @@ func (h *Handler) RegisterOwner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := domain.GenerateJWT(user.ID, domain.RoleOwner, h.Config.JWTSecret, 24*time.Hour)
+	token, err := domain.GenerateJWT(user.ID, domain.RoleOwner, h.Config.JWTSecret, domain.OwnerJWTExpiry)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return
@@ -120,9 +120,9 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expiry := 24 * time.Hour
+	expiry := domain.OwnerJWTExpiry
 	if user.Role == domain.RoleSubscriber {
-		expiry = 30 * 24 * time.Hour
+		expiry = domain.SubscriberJWTExpiry
 	}
 
 	token, err := domain.GenerateJWT(user.ID, user.Role, h.Config.JWTSecret, expiry)
@@ -178,7 +178,7 @@ func (h *Handler) RegisterSubscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := domain.GenerateJWT(user.ID, domain.RoleSubscriber, h.Config.JWTSecret, 30*24*time.Hour)
+	token, err := domain.GenerateJWT(user.ID, domain.RoleSubscriber, h.Config.JWTSecret, domain.SubscriberJWTExpiry)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "failed to generate token")
 		return

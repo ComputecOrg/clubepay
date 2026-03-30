@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/repository"
 )
@@ -102,7 +103,7 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 
 	case "PAYMENT_OVERDUE":
 		// Set subscription to grace with 3-day deadline
-		graceDeadline := time.Now().AddDate(0, 0, 3)
+		graceDeadline := time.Now().AddDate(0, 0, domain.GracePeriodDays)
 		if err := h.Queries.UpdateSubscriptionGrace(r.Context(), repository.UpdateSubscriptionGraceParams{
 			ID:            sub.ID,
 			GraceDeadline: pgtype.Timestamptz{Time: graceDeadline, Valid: true},

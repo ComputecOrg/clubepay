@@ -8,11 +8,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/repository"
 )
-
-const freeTierPlanLimit = 1
 
 // CreatePlan creates a new plan for the authenticated owner's business.
 func (h *Handler) CreatePlan(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +63,7 @@ func (h *Handler) CreatePlan(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "erro ao verificar planos")
 		return
 	}
-	if count >= int64(freeTierPlanLimit) {
+	if count >= int64(domain.FreeTierPlanLimit) {
 		writeError(w, http.StatusForbidden, "limite de plano atingido no plano gratuito")
 		return
 	}

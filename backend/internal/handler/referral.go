@@ -8,11 +8,10 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/repository"
 )
-
-const referralLimit = 3
 
 // MyReferralCode returns or creates the subscriber's referral code for a business.
 // GET /api/my-referral-code
@@ -119,7 +118,7 @@ func (h *Handler) ApplyReferral(w http.ResponseWriter, r *http.Request) {
 	}
 	// The template record counts as 1, so real referrals are count - 1
 	// But we count all active referrals including the template, so limit is referralLimit + 1
-	if count > int64(referralLimit) {
+	if count > int64(domain.ReferralLimit) {
 		writeError(w, http.StatusForbidden, "limite de indicações atingido (máximo 3)")
 		return
 	}
