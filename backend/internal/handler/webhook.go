@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/repository"
 )
@@ -91,18 +92,23 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 		}
 
 		go func() {
-			subscriber, subErr := h.Queries.GetUserByID(context.Background(), sub.SubscriberID)
-			plan, planErr := h.Queries.GetPlanByID(context.Background(), sub.PlanID)
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+
+			subscriber, subErr := h.Queries.GetUserByID(ctx, sub.SubscriberID)
+			plan, planErr := h.Queries.GetPlanByID(ctx, sub.PlanID)
 			if subErr == nil && planErr == nil {
 				amount := fmt.Sprintf("R$ %.2f", float64(plan.PriceCents)/100)
 				subject, body := email.PaymentConfirmedEmail(subscriber.Name, plan.Name, amount)
-				h.Email.Send(subscriber.Email, subject, body)
+				if err := h.Email.Send(subscriber.Email, subject, body); err != nil {
+					slog.Error("failed to send payment confirmed email", "error", err, "to", subscriber.Email)
+				}
 			}
 		}()
 
 	case "PAYMENT_OVERDUE":
 		// Set subscription to grace with 3-day deadline
-		graceDeadline := time.Now().AddDate(0, 0, 3)
+		graceDeadline := time.Now().AddDate(0, 0, domain.GracePeriodDays)
 		if err := h.Queries.UpdateSubscriptionGrace(r.Context(), repository.UpdateSubscriptionGraceParams{
 			ID:            sub.ID,
 			GraceDeadline: pgtype.Timestamptz{Time: graceDeadline, Valid: true},

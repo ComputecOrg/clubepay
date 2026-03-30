@@ -1,19 +1,9 @@
 package handler
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"net/http"
-	"regexp"
-	"strings"
-	"time"
-	"unicode"
-
-	"github.com/jackc/pgx/v5"
 
 	"github.com/clubepay/backend/internal/domain"
-	"github.com/clubepay/backend/internal/email"
-	"github.com/clubepay/backend/internal/repository"
 )
 
 // RegisterOwner creates an owner user and a business, then returns a JWT.
@@ -30,65 +20,13 @@ func (h *Handler) RegisterOwner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Segment == "" {
-		req.Segment = "cafeteria"
-	}
-
-	hash, err := domain.HashPassword(req.Password)
+	resp, err := h.Auth.RegisterOwner(r.Context(), req)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to hash password")
+		handleServiceError(w, err)
 		return
 	}
 
-	user, err := h.Queries.CreateUser(r.Context(), repository.CreateUserParams{
-		Email:        req.Email,
-		PasswordHash: hash,
-		Name:         req.Name,
-		Phone:        pgText(req.Phone),
-		Role:         domain.RoleOwner,
-	})
-	if err != nil {
-		if isDuplicateKeyError(err) {
-			writeError(w, http.StatusConflict, "email already in use")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "failed to create user")
-		return
-	}
-
-	slug := generateSlug(req.BusinessName)
-	biz, err := h.Queries.CreateBusiness(r.Context(), repository.CreateBusinessParams{
-		OwnerID: user.ID,
-		Name:    req.BusinessName,
-		Slug:    slug,
-		Segment: req.Segment,
-	})
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to create business")
-		return
-	}
-
-	token, err := domain.GenerateJWT(user.ID, domain.RoleOwner, h.Config.JWTSecret, 24*time.Hour)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to generate token")
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]interface{}{
-		"token": token,
-		"user": map[string]interface{}{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-			"role":  user.Role,
-		},
-		"business": map[string]interface{}{
-			"id":      biz.ID,
-			"name":    biz.Name,
-			"slug":    biz.Slug,
-			"segment": biz.Segment,
-		},
-	})
+	writeJSON(w, http.StatusCreated, resp)
 }
 
 // Login authenticates a user and returns a JWT.
@@ -105,41 +43,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Queries.GetUserByEmail(r.Context(), req.Email)
+	resp, err := h.Auth.Login(r.Context(), req)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			writeError(w, http.StatusUnauthorized, "invalid credentials")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "failed to query user")
+		handleServiceError(w, err)
 		return
 	}
 
-	if !domain.CheckPassword(req.Password, user.PasswordHash) {
-		writeError(w, http.StatusUnauthorized, "invalid credentials")
-		return
-	}
-
-	expiry := 24 * time.Hour
-	if user.Role == domain.RoleSubscriber {
-		expiry = 30 * 24 * time.Hour
-	}
-
-	token, err := domain.GenerateJWT(user.ID, user.Role, h.Config.JWTSecret, expiry)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to generate token")
-		return
-	}
-
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"token": token,
-		"user": map[string]interface{}{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-			"role":  user.Role,
-		},
-	})
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // RegisterSubscriber creates a subscriber user and returns a long-lived JWT (30 days).
@@ -156,51 +66,19 @@ func (h *Handler) RegisterSubscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hash, err := domain.HashPassword(req.Password)
+	resp, err := h.Auth.RegisterSubscriber(r.Context(), req)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to hash password")
+		handleServiceError(w, err)
 		return
 	}
 
-	user, err := h.Queries.CreateUser(r.Context(), repository.CreateUserParams{
-		Email:        req.Email,
-		PasswordHash: hash,
-		Name:         req.Name,
-		Phone:        pgText(req.Phone),
-		Role:         domain.RoleSubscriber,
-	})
-	if err != nil {
-		if isDuplicateKeyError(err) {
-			writeError(w, http.StatusConflict, "email already in use")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "failed to create user")
-		return
-	}
-
-	token, err := domain.GenerateJWT(user.ID, domain.RoleSubscriber, h.Config.JWTSecret, 30*24*time.Hour)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to generate token")
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, map[string]interface{}{
-		"token": token,
-		"user": map[string]interface{}{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-			"role":  user.Role,
-		},
-	})
+	writeJSON(w, http.StatusCreated, resp)
 }
 
 // RequestPasswordReset sends a password reset email.
 // POST /api/auth/request-password-reset
 func (h *Handler) RequestPasswordReset(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Email string `json:"email"`
-	}
+	var req domain.RequestPasswordResetInput
 	if err := readJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
@@ -209,137 +87,27 @@ func (h *Handler) RequestPasswordReset(w http.ResponseWriter, r *http.Request) {
 	// Always return 200 to avoid leaking user existence.
 	writeJSON(w, http.StatusOK, map[string]string{"message": "if an account with that email exists, a reset link has been sent"})
 
-	user, err := h.Queries.GetUserByEmail(r.Context(), req.Email)
-	if err != nil {
-		return // user not found or DB error — already responded 200
-	}
-
-	// Generate 32-byte random token (hex encoded = 64 chars).
-	tokenBytes := make([]byte, 32)
-	if _, err := rand.Read(tokenBytes); err != nil {
-		return
-	}
-	token := hex.EncodeToString(tokenBytes)
-
-	expiresAt := pgTimestamptz(time.Now().Add(time.Hour))
-	if _, err := h.Queries.CreatePasswordReset(r.Context(), repository.CreatePasswordResetParams{
-		UserID:    user.ID,
-		Token:     token,
-		ExpiresAt: expiresAt,
-	}); err != nil {
-		return
-	}
-
-	resetURL := h.Config.FrontendURL + "/resetar-senha?token=" + token
-	subject, body := email.PasswordResetEmail(user.Name, resetURL)
-	if h.Email != nil {
-		_ = h.Email.Send(user.Email, subject, body)
-	}
+	h.Auth.RequestPasswordReset(r.Context(), req.Email)
 }
 
 // ConfirmPasswordReset resets the user's password using a valid token.
 // POST /api/auth/confirm-password-reset
 func (h *Handler) ConfirmPasswordReset(w http.ResponseWriter, r *http.Request) {
-	var req struct {
-		Token    string `json:"token"`
-		Password string `json:"password"`
-	}
+	var req domain.ConfirmPasswordResetInput
 	if err := readJSON(r, &req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	if len(req.Password) < 8 {
-		writeError(w, http.StatusBadRequest, "password must be at least 8 characters")
+	if err := domain.Validate(req); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	reset, err := h.Queries.GetPasswordResetByToken(r.Context(), req.Token)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			writeError(w, http.StatusBadRequest, "invalid or expired token")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "failed to validate token")
-		return
-	}
-
-	hash, err := domain.HashPassword(req.Password)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to hash password")
-		return
-	}
-
-	if err := h.Queries.UpdateUserPassword(r.Context(), repository.UpdateUserPasswordParams{
-		ID:           reset.UserID,
-		PasswordHash: hash,
-	}); err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to update password")
-		return
-	}
-
-	if err := h.Queries.MarkPasswordResetUsed(r.Context(), reset.ID); err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to mark token used")
+	if err := h.Auth.ConfirmPasswordReset(r.Context(), req); err != nil {
+		handleServiceError(w, err)
 		return
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"message": "password updated successfully"})
-}
-
-// generateSlug converts a business name to a URL-safe slug.
-// E.g., "Café do João" → "cafe-do-joao"
-func generateSlug(name string) string {
-	// Normalize: remove accents / replace with ASCII equivalents
-	slug := strings.Map(func(r rune) rune {
-		switch {
-		case r >= 'a' && r <= 'z':
-			return r
-		case r >= 'A' && r <= 'Z':
-			return unicode.ToLower(r)
-		case r >= '0' && r <= '9':
-			return r
-		case r == ' ' || r == '-' || r == '_':
-			return '-'
-		default:
-			// Replace accented chars with their ASCII base
-			normalized := normalizeRune(r)
-			return normalized
-		}
-	}, name)
-
-	// Collapse multiple hyphens
-	re := regexp.MustCompile(`-+`)
-	slug = re.ReplaceAllString(slug, "-")
-
-	// Trim leading/trailing hyphens
-	slug = strings.Trim(slug, "-")
-
-	return slug
-}
-
-// normalizeRune maps accented/special characters to their ASCII equivalents.
-func normalizeRune(r rune) rune {
-	replacements := map[rune]rune{
-		'á': 'a', 'à': 'a', 'ã': 'a', 'â': 'a', 'ä': 'a',
-		'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
-		'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
-		'ó': 'o', 'ò': 'o', 'õ': 'o', 'ô': 'o', 'ö': 'o',
-		'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
-		'ç': 'c', 'ñ': 'n',
-		'Á': 'a', 'À': 'a', 'Ã': 'a', 'Â': 'a', 'Ä': 'a',
-		'É': 'e', 'È': 'e', 'Ê': 'e', 'Ë': 'e',
-		'Í': 'i', 'Ì': 'i', 'Î': 'i', 'Ï': 'i',
-		'Ó': 'o', 'Ò': 'o', 'Õ': 'o', 'Ô': 'o', 'Ö': 'o',
-		'Ú': 'u', 'Ù': 'u', 'Û': 'u', 'Ü': 'u',
-		'Ç': 'c', 'Ñ': 'n',
-	}
-	if v, ok := replacements[r]; ok {
-		return v
-	}
-	return -1 // drop unknown characters
-}
-
-// isDuplicateKeyError returns true if the error is a PostgreSQL unique constraint violation.
-func isDuplicateKeyError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "duplicate key")
 }

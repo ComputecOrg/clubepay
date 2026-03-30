@@ -64,6 +64,29 @@ type ApplyReferralInput struct {
 	Code string `json:"code" validate:"required"`
 }
 
+type UpdateProfileInput struct {
+	Name  string `json:"name" validate:"required"`
+	Phone string `json:"phone"`
+}
+
+type ChangePasswordInput struct {
+	CurrentPassword string `json:"current_password" validate:"required"`
+	NewPassword     string `json:"new_password" validate:"required,min=8"`
+}
+
+type RequestPasswordResetInput struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+type ConfirmPasswordResetInput struct {
+	Token    string `json:"token" validate:"required"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
+type ValidateUsageOwnerInput struct {
+	SubscriberID int64 `json:"subscriber_id" validate:"gt=0"`
+}
+
 // Validate validates a struct using validator/v10 tags.
 func Validate(s interface{}) error {
 	if err := validate.Struct(s); err != nil {

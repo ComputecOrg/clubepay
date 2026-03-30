@@ -130,3 +130,188 @@ func TestValidate_RegisterSubscriberInput(t *testing.T) {
 	invalid := domain.RegisterSubscriberInput{Email: "bad"}
 	assert.Error(t, domain.Validate(invalid))
 }
+
+func TestValidate_UpdateProfileInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   domain.UpdateProfileInput
+		wantErr bool
+	}{
+		{
+			name:    "valid with name only",
+			input:   domain.UpdateProfileInput{Name: "Maria"},
+			wantErr: false,
+		},
+		{
+			name:    "valid with name and phone",
+			input:   domain.UpdateProfileInput{Name: "Maria", Phone: "11999990000"},
+			wantErr: false,
+		},
+		{
+			name:    "missing name",
+			input:   domain.UpdateProfileInput{Phone: "11999990000"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := domain.Validate(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidate_ChangePasswordInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   domain.ChangePasswordInput
+		wantErr bool
+	}{
+		{
+			name:    "valid",
+			input:   domain.ChangePasswordInput{CurrentPassword: "oldpass1", NewPassword: "newpass1"},
+			wantErr: false,
+		},
+		{
+			name:    "missing current password",
+			input:   domain.ChangePasswordInput{NewPassword: "newpass1"},
+			wantErr: true,
+		},
+		{
+			name:    "missing new password",
+			input:   domain.ChangePasswordInput{CurrentPassword: "oldpass1"},
+			wantErr: true,
+		},
+		{
+			name:    "new password too short",
+			input:   domain.ChangePasswordInput{CurrentPassword: "oldpass1", NewPassword: "short"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := domain.Validate(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidate_RequestPasswordResetInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   domain.RequestPasswordResetInput
+		wantErr bool
+	}{
+		{
+			name:    "valid email",
+			input:   domain.RequestPasswordResetInput{Email: "user@example.com"},
+			wantErr: false,
+		},
+		{
+			name:    "missing email",
+			input:   domain.RequestPasswordResetInput{},
+			wantErr: true,
+		},
+		{
+			name:    "invalid email format",
+			input:   domain.RequestPasswordResetInput{Email: "not-an-email"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := domain.Validate(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidate_ConfirmPasswordResetInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   domain.ConfirmPasswordResetInput
+		wantErr bool
+	}{
+		{
+			name:    "valid",
+			input:   domain.ConfirmPasswordResetInput{Token: "abc123token", Password: "newpass99"},
+			wantErr: false,
+		},
+		{
+			name:    "missing token",
+			input:   domain.ConfirmPasswordResetInput{Password: "newpass99"},
+			wantErr: true,
+		},
+		{
+			name:    "missing password",
+			input:   domain.ConfirmPasswordResetInput{Token: "abc123token"},
+			wantErr: true,
+		},
+		{
+			name:    "password too short",
+			input:   domain.ConfirmPasswordResetInput{Token: "abc123token", Password: "short"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := domain.Validate(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidate_ValidateUsageOwnerInput(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   domain.ValidateUsageOwnerInput
+		wantErr bool
+	}{
+		{
+			name:    "valid subscriber id",
+			input:   domain.ValidateUsageOwnerInput{SubscriberID: 1},
+			wantErr: false,
+		},
+		{
+			name:    "zero subscriber id",
+			input:   domain.ValidateUsageOwnerInput{SubscriberID: 0},
+			wantErr: true,
+		},
+		{
+			name:    "negative subscriber id",
+			input:   domain.ValidateUsageOwnerInput{SubscriberID: -5},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := domain.Validate(tt.input)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
