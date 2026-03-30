@@ -37,6 +37,8 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 		r.Post("/api/auth/register", h.RegisterOwner)
 		r.Post("/api/auth/login", h.Login)
 		r.Post("/api/auth/register-subscriber", h.RegisterSubscriber)
+		r.Post("/api/auth/request-password-reset", h.RequestPasswordReset)
+		r.Post("/api/auth/confirm-password-reset", h.ConfirmPasswordReset)
 	})
 
 	// Webhook + Cron (custom auth)

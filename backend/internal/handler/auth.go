@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 	"regexp"
 	"strings"
@@ -10,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"github.com/clubepay/backend/internal/domain"
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/repository"
 )
 
@@ -190,6 +193,97 @@ func (h *Handler) RegisterSubscriber(w http.ResponseWriter, r *http.Request) {
 			"role":  user.Role,
 		},
 	})
+}
+
+// RequestPasswordReset sends a password reset email.
+// POST /api/auth/request-password-reset
+func (h *Handler) RequestPasswordReset(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Always return 200 to avoid leaking user existence.
+	writeJSON(w, http.StatusOK, map[string]string{"message": "if an account with that email exists, a reset link has been sent"})
+
+	user, err := h.Queries.GetUserByEmail(r.Context(), req.Email)
+	if err != nil {
+		return // user not found or DB error — already responded 200
+	}
+
+	// Generate 32-byte random token (hex encoded = 64 chars).
+	tokenBytes := make([]byte, 32)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		return
+	}
+	token := hex.EncodeToString(tokenBytes)
+
+	expiresAt := pgTimestamptz(time.Now().Add(time.Hour))
+	if _, err := h.Queries.CreatePasswordReset(r.Context(), repository.CreatePasswordResetParams{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: expiresAt,
+	}); err != nil {
+		return
+	}
+
+	resetURL := h.Config.FrontendURL + "/resetar-senha?token=" + token
+	subject, body := email.PasswordResetEmail(user.Name, resetURL)
+	if h.Email != nil {
+		_ = h.Email.Send(user.Email, subject, body)
+	}
+}
+
+// ConfirmPasswordReset resets the user's password using a valid token.
+// POST /api/auth/confirm-password-reset
+func (h *Handler) ConfirmPasswordReset(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Token    string `json:"token"`
+		Password string `json:"password"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if len(req.Password) < 8 {
+		writeError(w, http.StatusBadRequest, "password must be at least 8 characters")
+		return
+	}
+
+	reset, err := h.Queries.GetPasswordResetByToken(r.Context(), req.Token)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			writeError(w, http.StatusBadRequest, "invalid or expired token")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "failed to validate token")
+		return
+	}
+
+	hash, err := domain.HashPassword(req.Password)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to hash password")
+		return
+	}
+
+	if err := h.Queries.UpdateUserPassword(r.Context(), repository.UpdateUserPasswordParams{
+		ID:           reset.UserID,
+		PasswordHash: hash,
+	}); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to update password")
+		return
+	}
+
+	if err := h.Queries.MarkPasswordResetUsed(r.Context(), reset.ID); err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to mark token used")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"message": "password updated successfully"})
 }
 
 // generateSlug converts a business name to a URL-safe slug.
