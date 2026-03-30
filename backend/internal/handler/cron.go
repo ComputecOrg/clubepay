@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/repository"
 )
 
@@ -43,11 +43,8 @@ func (h *Handler) Reconcile(w http.ResponseWriter, r *http.Request) {
 		if h.Email != nil {
 			subscriber, err := h.Queries.GetUserByID(ctx, sub.SubscriberID)
 			if err == nil {
-				h.Email.Send(
-					subscriber.Email,
-					"ClubePay - Assinatura bloqueada",
-					fmt.Sprintf("Ola %s,\n\nSua assinatura foi bloqueada por falta de pagamento.\nPor favor, regularize seu pagamento para continuar usando o servico.\n\nEquipe ClubePay", subscriber.Name),
-				)
+				subject, body := email.GraceBlockedEmail(subscriber.Name)
+				h.Email.Send(subscriber.Email, subject, body)
 			}
 		}
 	}
