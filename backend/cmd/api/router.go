@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
@@ -30,10 +31,13 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 	r.Get("/api/public/business/{slug}", h.GetPublicBusiness)
 	r.Get("/api/public/plans/{slug}", h.GetPublicPlans)
 
-	// Auth (no auth)
-	r.Post("/api/auth/register", h.RegisterOwner)
-	r.Post("/api/auth/login", h.Login)
-	r.Post("/api/auth/register-subscriber", h.RegisterSubscriber)
+	// Auth (no auth, rate limited)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.RateLimit(10, time.Minute))
+		r.Post("/api/auth/register", h.RegisterOwner)
+		r.Post("/api/auth/login", h.Login)
+		r.Post("/api/auth/register-subscriber", h.RegisterSubscriber)
+	})
 
 	// Webhook + Cron (custom auth)
 	r.Post("/api/psp/webhook", h.PSPWebhook)
