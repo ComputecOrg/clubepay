@@ -14,17 +14,36 @@ import (
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
+	"github.com/clubepay/backend/internal/service"
 )
 
 type Handler struct {
+	Auth          *service.AuthService
+	Business      *service.BusinessService
+	Plans         *service.PlanService
+	Subscriptions *service.SubscriptionService
+	Usage         *service.UsageService
+	Referrals     *service.ReferralService
+	Config        *config.Config
+	// Keep these for webhook, cron, public, and search handlers that need direct access
 	Queries *repository.Queries
-	Config  *config.Config
 	PSP     psp.PSP
 	Email   email.Sender
 }
 
 func New(q *repository.Queries, cfg *config.Config, p psp.PSP, e email.Sender) *Handler {
-	return &Handler{Queries: q, Config: cfg, PSP: p, Email: e}
+	return &Handler{
+		Auth:          service.NewAuthService(q, cfg, e),
+		Business:      service.NewBusinessService(q),
+		Plans:         service.NewPlanService(q),
+		Subscriptions: service.NewSubscriptionService(q, p, e),
+		Usage:         service.NewUsageService(q),
+		Referrals:     service.NewReferralService(q),
+		Config:        cfg,
+		Queries:       q,
+		PSP:           p,
+		Email:         e,
+	}
 }
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {

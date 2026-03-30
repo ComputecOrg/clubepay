@@ -44,7 +44,9 @@ func (h *Handler) Reconcile(w http.ResponseWriter, r *http.Request) {
 			subscriber, err := h.Queries.GetUserByID(ctx, sub.SubscriberID)
 			if err == nil {
 				subject, body := email.GraceBlockedEmail(subscriber.Name)
-				h.Email.Send(subscriber.Email, subject, body)
+				if err := h.Email.Send(subscriber.Email, subject, body); err != nil {
+					slog.Error("failed to send reconcile email", "error", err, "to", subscriber.Email)
+				}
 			}
 		}
 	}

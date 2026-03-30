@@ -1,14 +1,10 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
-
-	"github.com/jackc/pgx/v5"
 
 	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/middleware"
-	"github.com/clubepay/backend/internal/repository"
 )
 
 // GetProfile returns the authenticated user's profile.
@@ -16,25 +12,13 @@ import (
 func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.UserIDFromContext(r.Context())
 
-	user, err := h.Queries.GetUserByID(r.Context(), userID)
+	resp, err := h.Auth.GetProfile(r.Context(), userID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			writeError(w, http.StatusNotFound, "usuario nao encontrado")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "erro ao buscar perfil")
+		handleServiceError(w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"user": map[string]interface{}{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-			"phone": user.Phone.String,
-			"role":  user.Role,
-		},
-	})
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // UpdateProfile updates name and phone.
@@ -42,39 +26,24 @@ func (h *Handler) GetProfile(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.UserIDFromContext(r.Context())
 
-	var input struct {
-		Name  string `json:"name"`
-		Phone string `json:"phone"`
-	}
+	var input domain.UpdateProfileInput
 	if err := readJSON(r, &input); err != nil {
 		writeError(w, http.StatusBadRequest, "corpo da requisicao invalido")
 		return
 	}
 
-	if input.Name == "" {
-		writeError(w, http.StatusBadRequest, "nome e obrigatorio")
+	if err := domain.Validate(input); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	user, err := h.Queries.UpdateUserProfile(r.Context(), repository.UpdateUserProfileParams{
-		ID:    userID,
-		Name:  input.Name,
-		Phone: pgText(input.Phone),
-	})
+	resp, err := h.Auth.UpdateProfile(r.Context(), userID, input)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "erro ao atualizar perfil")
+		handleServiceError(w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"user": map[string]interface{}{
-			"id":    user.ID,
-			"email": user.Email,
-			"name":  user.Name,
-			"phone": user.Phone.String,
-			"role":  user.Role,
-		},
-	})
+	writeJSON(w, http.StatusOK, resp)
 }
 
 // ChangePassword changes the user's password.
@@ -82,42 +51,19 @@ func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.UserIDFromContext(r.Context())
 
-	var input struct {
-		CurrentPassword string `json:"current_password"`
-		NewPassword     string `json:"new_password"`
-	}
+	var input domain.ChangePasswordInput
 	if err := readJSON(r, &input); err != nil {
 		writeError(w, http.StatusBadRequest, "corpo da requisicao invalido")
 		return
 	}
 
-	if len(input.NewPassword) < 8 {
-		writeError(w, http.StatusBadRequest, "nova senha deve ter no minimo 8 caracteres")
+	if err := domain.Validate(input); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	user, err := h.Queries.GetUserByID(r.Context(), userID)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "erro ao buscar usuario")
-		return
-	}
-
-	if !domain.CheckPassword(input.CurrentPassword, user.PasswordHash) {
-		writeError(w, http.StatusUnauthorized, "senha atual incorreta")
-		return
-	}
-
-	hash, err := domain.HashPassword(input.NewPassword)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "erro ao processar senha")
-		return
-	}
-
-	if err := h.Queries.UpdateUserPassword(r.Context(), repository.UpdateUserPasswordParams{
-		ID:           userID,
-		PasswordHash: hash,
-	}); err != nil {
-		writeError(w, http.StatusInternalServerError, "erro ao atualizar senha")
+	if err := h.Auth.ChangePassword(r.Context(), userID, input); err != nil {
+		handleServiceError(w, err)
 		return
 	}
 

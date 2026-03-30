@@ -22,6 +22,11 @@ type SubscriptionService struct {
 	Email   email.Sender
 }
 
+// NewSubscriptionService creates a new SubscriptionService.
+func NewSubscriptionService(q *repository.Queries, p psp.PSP, e email.Sender) *SubscriptionService {
+	return &SubscriptionService{Queries: q, PSP: p, Email: e}
+}
+
 // SubscribeInput contains the parameters required to create a new subscription.
 type SubscribeInput struct {
 	PlanID int64
