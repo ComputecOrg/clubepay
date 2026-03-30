@@ -1,4 +1,4 @@
-.PHONY: dev-backend dev-frontend test-backend test-frontend test migrate-up migrate-down sqlc docker-up docker-down docker-logs
+.PHONY: dev-backend dev-frontend test-backend test-frontend test migrate-up migrate-down sqlc docker-up docker-down docker-logs backup lint-backend lint docker-prod-up docker-prod-down migrate-create
 
 # Development
 dev-backend:
@@ -52,3 +52,26 @@ docker-down:
 
 docker-logs:
 	docker compose logs -f
+
+# Backup
+backup:
+	./scripts/backup.sh
+
+# Lint backend
+lint-backend:
+	cd backend && go vet ./...
+
+# Full lint
+lint: lint-backend
+	cd frontend && npm run lint
+
+# Docker Compose Production
+docker-prod-up:
+	docker compose -f docker-compose.prod.yml up -d
+
+docker-prod-down:
+	docker compose -f docker-compose.prod.yml down
+
+# Migrate
+migrate-create:
+	cd backend && migrate create -ext sql -dir migrations -seq $(name)
