@@ -152,6 +152,33 @@ func (q *Queries) GetActiveSubscription(ctx context.Context, arg GetActiveSubscr
 	return i, err
 }
 
+const getActiveSubscriptionBySubscriber = `-- name: GetActiveSubscriptionBySubscriber :one
+SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions
+WHERE subscriber_id = $1 AND status IN ('active', 'grace')
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetActiveSubscriptionBySubscriber(ctx context.Context, subscriberID int64) (Subscription, error) {
+	row := q.db.QueryRow(ctx, getActiveSubscriptionBySubscriber, subscriberID)
+	var i Subscription
+	err := row.Scan(
+		&i.ID,
+		&i.PlanID,
+		&i.SubscriberID,
+		&i.BusinessID,
+		&i.PspSubscriptionID,
+		&i.Status,
+		&i.PeriodEnd,
+		&i.GraceDeadline,
+		&i.ReferredBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DiscountPercent,
+	)
+	return i, err
+}
+
 const getSubscriptionByID = `-- name: GetSubscriptionByID :one
 SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions WHERE id = $1
 `

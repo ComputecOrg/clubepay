@@ -38,7 +38,8 @@ async function getPlans(slug: string): Promise<Plan[]> {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    return data.plans || data;
   } catch {
     return [];
   }

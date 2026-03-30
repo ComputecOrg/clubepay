@@ -10,34 +10,14 @@ import (
 
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/middleware"
-	"github.com/clubepay/backend/internal/repository"
 )
 
 // MyPlan returns the plan information for the authenticated subscriber.
-// GET /api/my-plan?business_slug=xxx
+// GET /api/my-plan
 func (h *Handler) MyPlan(w http.ResponseWriter, r *http.Request) {
 	subscriberID := middleware.UserIDFromContext(r.Context())
 
-	businessSlug := r.URL.Query().Get("business_slug")
-	if businessSlug == "" {
-		writeError(w, http.StatusBadRequest, "business_slug é obrigatório")
-		return
-	}
-
-	biz, err := h.Queries.GetBusinessBySlug(r.Context(), businessSlug)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			writeError(w, http.StatusNotFound, "negócio não encontrado")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "erro ao buscar negócio")
-		return
-	}
-
-	sub, err := h.Queries.GetActiveSubscription(r.Context(), repository.GetActiveSubscriptionParams{
-		SubscriberID: subscriberID,
-		BusinessID:   biz.ID,
-	})
+	sub, err := h.Queries.GetActiveSubscriptionBySubscriber(r.Context(), subscriberID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			writeError(w, http.StatusNotFound, "assinatura não encontrada")
@@ -50,6 +30,12 @@ func (h *Handler) MyPlan(w http.ResponseWriter, r *http.Request) {
 	plan, err := h.Queries.GetPlanByID(r.Context(), sub.PlanID)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "erro ao buscar plano")
+		return
+	}
+
+	biz, err := h.Queries.GetBusinessByID(r.Context(), sub.BusinessID)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "erro ao buscar negócio")
 		return
 	}
 
@@ -80,33 +66,7 @@ func (h *Handler) MyPlan(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CancelBySubscriber(w http.ResponseWriter, r *http.Request) {
 	subscriberID := middleware.UserIDFromContext(r.Context())
 
-	var input struct {
-		BusinessSlug string `json:"business_slug"`
-	}
-	if err := readJSON(r, &input); err != nil {
-		writeError(w, http.StatusBadRequest, "corpo da requisição inválido")
-		return
-	}
-
-	if input.BusinessSlug == "" {
-		writeError(w, http.StatusBadRequest, "business_slug é obrigatório")
-		return
-	}
-
-	biz, err := h.Queries.GetBusinessBySlug(r.Context(), input.BusinessSlug)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			writeError(w, http.StatusNotFound, "negócio não encontrado")
-			return
-		}
-		writeError(w, http.StatusInternalServerError, "erro ao buscar negócio")
-		return
-	}
-
-	sub, err := h.Queries.GetActiveSubscription(r.Context(), repository.GetActiveSubscriptionParams{
-		SubscriberID: subscriberID,
-		BusinessID:   biz.ID,
-	})
+	sub, err := h.Queries.GetActiveSubscriptionBySubscriber(r.Context(), subscriberID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			writeError(w, http.StatusNotFound, "assinatura não encontrada")

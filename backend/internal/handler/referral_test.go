@@ -18,10 +18,12 @@ func TestMyReferralCode_Success(t *testing.T) {
 	h := setupHandler(t)
 
 	owner := testutil.SeedOwner(t, h.Queries, "refowner@test.com", "Ref Owner")
-	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café Ref", "cafe-ref")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café Ref", "cafe-ref")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano Ref", 2990, "daily", 1)
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "refsub@test.com", "Ref Sub", "11999990100")
+	testutil.SeedSubscription(t, h.Queries, plan.ID, subscriber.ID, biz.ID)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-ref", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
 	req = withAuth(req, subscriber.ID, "subscriber")
 	rr := httptest.NewRecorder()
 
@@ -32,18 +34,20 @@ func TestMyReferralCode_Success(t *testing.T) {
 	var resp map[string]string
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
 	assert.NotEmpty(t, resp["code"])
-	assert.Len(t, resp["code"], 8) // 4 bytes = 8 hex chars
+	assert.Len(t, resp["code"], 8)
 }
 
 func TestMyReferralCode_SameCodeTwice(t *testing.T) {
 	h := setupHandler(t)
 
 	owner := testutil.SeedOwner(t, h.Queries, "reftwice@test.com", "Ref Twice Owner")
-	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café RefTwice", "cafe-reftwice")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café RefTwice", "cafe-reftwice")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano RefTwice", 2990, "daily", 1)
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "reftwicesub@test.com", "Ref Twice Sub", "11999990200")
+	testutil.SeedSubscription(t, h.Queries, plan.ID, subscriber.ID, biz.ID)
 
 	// First call
-	req1 := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-reftwice", nil)
+	req1 := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
 	req1 = withAuth(req1, subscriber.ID, "subscriber")
 	rr1 := httptest.NewRecorder()
 	h.MyReferralCode(rr1, req1)
@@ -53,7 +57,7 @@ func TestMyReferralCode_SameCodeTwice(t *testing.T) {
 	require.NoError(t, json.NewDecoder(rr1.Body).Decode(&resp1))
 
 	// Second call
-	req2 := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-reftwice", nil)
+	req2 := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
 	req2 = withAuth(req2, subscriber.ID, "subscriber")
 	rr2 := httptest.NewRecorder()
 	h.MyReferralCode(rr2, req2)
@@ -66,24 +70,11 @@ func TestMyReferralCode_SameCodeTwice(t *testing.T) {
 	assert.Equal(t, resp1["code"], resp2["code"])
 }
 
-func TestMyReferralCode_MissingSlug(t *testing.T) {
+func TestMyReferralCode_NoSubscription(t *testing.T) {
 	h := setupHandler(t)
-	subscriber := testutil.SeedSubscriber(t, h.Queries, "refnoslug@test.com", "Ref NoSlug Sub", "11999990400")
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "refnoslug@test.com", "Ref NoSub Sub", "11999990400")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
-	req = withAuth(req, subscriber.ID, "subscriber")
-	rr := httptest.NewRecorder()
-
-	h.MyReferralCode(rr, req)
-
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-}
-
-func TestMyReferralCode_BusinessNotFound(t *testing.T) {
-	h := setupHandler(t)
-	subscriber := testutil.SeedSubscriber(t, h.Queries, "refnobiz@test.com", "Ref NoBiz Sub", "11999990500")
-
-	req := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=nonexistent", nil)
 	req = withAuth(req, subscriber.ID, "subscriber")
 	rr := httptest.NewRecorder()
 
@@ -142,11 +133,14 @@ func TestApplyReferral_ReferralLimit(t *testing.T) {
 	h := setupHandler(t)
 
 	owner := testutil.SeedOwner(t, h.Queries, "reflimitowner@test.com", "Ref Limit Owner")
-	_ = testutil.SeedBusiness(t, h.Queries, owner.ID, "Café RefLimit", "cafe-reflimit")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café RefLimit", "cafe-reflimit")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano RefLimit", 2990, "daily", 1)
 
 	// Referrer gets their code
 	referrer := testutil.SeedSubscriber(t, h.Queries, "reflimiter@test.com", "Ref Limiter", "11999990900")
-	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-reflimit", nil)
+	testutil.SeedSubscription(t, h.Queries, plan.ID, referrer.ID, biz.ID)
+
+	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
 	codeReq = withAuth(codeReq, referrer.ID, "subscriber")
 	codeRr := httptest.NewRecorder()
 	h.MyReferralCode(codeRr, codeReq)
@@ -156,7 +150,7 @@ func TestApplyReferral_ReferralLimit(t *testing.T) {
 	require.NoError(t, json.NewDecoder(codeRr.Body).Decode(&codeResp))
 	referralCode := codeResp["code"]
 
-	// Apply the code 3 times (hits the limit: template record + 3 referrals = count > referralLimit=3)
+	// Apply the code 3 times
 	for i := 0; i < 3; i++ {
 		referred := testutil.SeedSubscriber(t, h.Queries, fmt.Sprintf("reflimitreferred%d@test.com", i), fmt.Sprintf("Referred %d", i), fmt.Sprintf("1199999100%d", i))
 		ab, _ := json.Marshal(map[string]string{"code": referralCode})
@@ -168,7 +162,7 @@ func TestApplyReferral_ReferralLimit(t *testing.T) {
 		require.Equal(t, http.StatusOK, applyRr.Code, "referral %d should succeed", i+1)
 	}
 
-	// 4th application should fail — referral limit reached
+	// 4th should fail
 	referred4 := testutil.SeedSubscriber(t, h.Queries, "reflimitreferred4@test.com", "Referred 4", "11999991004")
 	ab4, _ := json.Marshal(map[string]string{"code": referralCode})
 	applyReq4 := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(ab4))
@@ -184,11 +178,13 @@ func TestApplyReferral_SelfReferral(t *testing.T) {
 	h := setupHandler(t)
 
 	owner := testutil.SeedOwner(t, h.Queries, "selfrefowner@test.com", "SelfRef Owner")
-	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café SelfRef", "cafe-selfref")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café SelfRef", "cafe-selfref")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano SelfRef", 2990, "daily", 1)
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "selfrefsub@test.com", "SelfRef Sub", "11999990300")
+	testutil.SeedSubscription(t, h.Queries, plan.ID, subscriber.ID, biz.ID)
 
 	// Get own referral code
-	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-selfref", nil)
+	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
 	codeReq = withAuth(codeReq, subscriber.ID, "subscriber")
 	codeRr := httptest.NewRecorder()
 	h.MyReferralCode(codeRr, codeReq)
@@ -198,8 +194,7 @@ func TestApplyReferral_SelfReferral(t *testing.T) {
 	require.NoError(t, json.NewDecoder(codeRr.Body).Decode(&codeResp))
 
 	// Try to apply own code
-	applyBody := map[string]string{"code": codeResp["code"]}
-	ab, _ := json.Marshal(applyBody)
+	ab, _ := json.Marshal(map[string]string{"code": codeResp["code"]})
 	applyReq := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(ab))
 	applyReq.Header.Set("Content-Type", "application/json")
 	applyReq = withAuth(applyReq, subscriber.ID, "subscriber")

@@ -4,18 +4,27 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { getToken, clearToken } from "@/lib/auth";
-import UsageBar from "@/components/UsageBar";
+
 
 interface MyPlanResponse {
-  plan_name: string;
-  business_name: string;
-  price_cents: number;
-  status: string;
-  next_billing_date: string;
-  used: number;
-  limit: number;
-  limit_type: "daily" | "monthly";
-  referral_code: string;
+  plan: {
+    id: number;
+    name: string;
+    description: string;
+    price_cents: number;
+    limit_type: "daily" | "monthly";
+    limit_count: number;
+  };
+  business: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  subscription: {
+    id: number;
+    status: string;
+    period_end: string | null;
+  };
 }
 
 interface ReferralCodeResponse {
@@ -155,28 +164,28 @@ export default function MeuPlanoPage() {
 
         <div className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4">
           <div>
-            <p className="text-sm text-gray-500">{plan.business_name}</p>
-            <h2 className="text-2xl font-bold text-gray-900">{plan.plan_name}</h2>
+            <p className="text-sm text-gray-500">{plan.business.name}</p>
+            <h2 className="text-2xl font-bold text-gray-900">{plan.plan.name}</h2>
           </div>
-
-          <UsageBar
-            used={plan.used}
-            limit={plan.limit}
-            period={plan.limit_type}
-          />
 
           <div className="flex flex-col gap-2 text-sm text-gray-600">
             <div className="flex justify-between">
               <span>Valor</span>
               <span className="font-medium text-gray-900">
-                {formatPrice(plan.price_cents)}/mês
+                {formatPrice(plan.plan.price_cents)}/mes
               </span>
             </div>
-            {plan.next_billing_date && (
+            <div className="flex justify-between">
+              <span>Limite</span>
+              <span className="font-medium text-gray-900">
+                {plan.plan.limit_count}x por {plan.plan.limit_type === "daily" ? "dia" : "mes"}
+              </span>
+            </div>
+            {plan.subscription.period_end && (
               <div className="flex justify-between">
-                <span>Próxima cobrança</span>
+                <span>Proxima cobranca</span>
                 <span className="font-medium text-gray-900">
-                  {formatDate(plan.next_billing_date)}
+                  {formatDate(plan.subscription.period_end)}
                 </span>
               </div>
             )}
@@ -184,14 +193,14 @@ export default function MeuPlanoPage() {
               <span>Status</span>
               <span
                 className={`font-medium ${
-                  plan.status === "active"
+                  plan.subscription.status === "active"
                     ? "text-green-600"
-                    : plan.status === "overdue"
+                    : plan.subscription.status === "overdue"
                     ? "text-red-600"
                     : "text-gray-600"
                 }`}
               >
-                {statusLabel(plan.status)}
+                {statusLabel(plan.subscription.status)}
               </span>
             </div>
           </div>

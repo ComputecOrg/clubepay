@@ -156,7 +156,7 @@ func TestMyUsage_DBError(t *testing.T) {
 
 func TestMyPlan_DBError(t *testing.T) {
 	h := setupBrokenHandler(t)
-	req := httptest.NewRequest("GET", "/api/my-plan?business_slug=test", nil)
+	req := httptest.NewRequest("GET", "/api/my-plan", nil)
 	req = withAuth(req, 1, "subscriber")
 	rr := httptest.NewRecorder()
 	h.MyPlan(rr, req)
@@ -165,9 +165,7 @@ func TestMyPlan_DBError(t *testing.T) {
 
 func TestCancelBySubscriber_DBError(t *testing.T) {
 	h := setupBrokenHandler(t)
-	body, _ := json.Marshal(map[string]string{"business_slug": "test"})
-	req := httptest.NewRequest("POST", "/api/cancel", bytes.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest("POST", "/api/cancel", nil)
 	req = withAuth(req, 1, "subscriber")
 	rr := httptest.NewRecorder()
 	h.CancelBySubscriber(rr, req)
@@ -176,7 +174,7 @@ func TestCancelBySubscriber_DBError(t *testing.T) {
 
 func TestMyReferralCode_DBError(t *testing.T) {
 	h := setupBrokenHandler(t)
-	req := httptest.NewRequest("GET", "/api/my-referral-code?business_slug=test", nil)
+	req := httptest.NewRequest("GET", "/api/my-referral-code", nil)
 	req = withAuth(req, 1, "subscriber")
 	rr := httptest.NewRecorder()
 	h.MyReferralCode(rr, req)

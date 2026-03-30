@@ -332,9 +332,10 @@ func TestSubscribe_WithReferralDiscount(t *testing.T) {
 
 	// Referrer subscribes first (to have an existing subscriber who can refer)
 	referrer := testutil.SeedSubscriber(t, h.Queries, "referrerdiscount@test.com", "Referrer Discount", "11999994000")
+	testutil.SeedSubscription(t, h.Queries, plan.ID, referrer.ID, biz.ID)
 
 	// Get referrer's code via MyReferralCode
-	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-discount", nil)
+	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code", nil)
 	codeReq = withAuth(codeReq, referrer.ID, "subscriber")
 	codeRr := httptest.NewRecorder()
 	h.MyReferralCode(codeRr, codeReq)

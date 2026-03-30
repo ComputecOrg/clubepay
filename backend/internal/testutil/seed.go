@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/clubepay/backend/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -81,4 +82,22 @@ func SeedPlan(t *testing.T, q *repository.Queries, businessID int64, name string
 		t.Fatalf("failed to seed plan: %v", err)
 	}
 	return plan
+}
+
+// SeedSubscription creates an active subscription for test fixtures.
+func SeedSubscription(t *testing.T, q *repository.Queries, planID, subscriberID, businessID int64) repository.Subscription {
+	t.Helper()
+	sub, err := q.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            planID,
+		SubscriberID:      subscriberID,
+		BusinessID:        businessID,
+		PspSubscriptionID: pgtype.Text{String: "mock_sub_test", Valid: true},
+		Status:            "active",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+		ReferredBy:        pgtype.Int8{Valid: false},
+	})
+	if err != nil {
+		t.Fatalf("failed to seed subscription: %v", err)
+	}
+	return sub
 }

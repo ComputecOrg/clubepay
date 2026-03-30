@@ -15,22 +15,22 @@ import (
 const referralLimit = 3
 
 // MyReferralCode returns or creates the subscriber's referral code for a business.
-// GET /api/my-referral-code?business_slug=xxx
+// GET /api/my-referral-code
 func (h *Handler) MyReferralCode(w http.ResponseWriter, r *http.Request) {
 	subscriberID := middleware.UserIDFromContext(r.Context())
 
-	businessSlug := r.URL.Query().Get("business_slug")
-	if businessSlug == "" {
-		writeError(w, http.StatusBadRequest, "business_slug é obrigatório")
+	sub, err := h.Queries.GetActiveSubscriptionBySubscriber(r.Context(), subscriberID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			writeError(w, http.StatusNotFound, "assinatura não encontrada")
+			return
+		}
+		writeError(w, http.StatusInternalServerError, "erro ao buscar assinatura")
 		return
 	}
 
-	biz, err := h.Queries.GetBusinessBySlug(r.Context(), businessSlug)
+	biz, err := h.Queries.GetBusinessByID(r.Context(), sub.BusinessID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			writeError(w, http.StatusNotFound, "negócio não encontrado")
-			return
-		}
 		writeError(w, http.StatusInternalServerError, "erro ao buscar negócio")
 		return
 	}

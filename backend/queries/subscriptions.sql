@@ -22,6 +22,12 @@ SELECT * FROM subscriptions
 WHERE subscriber_id = $1 AND business_id = $2 AND status IN ('active', 'grace')
 LIMIT 1;
 
+-- name: GetActiveSubscriptionBySubscriber :one
+SELECT * FROM subscriptions
+WHERE subscriber_id = $1 AND status IN ('active', 'grace')
+ORDER BY created_at DESC
+LIMIT 1;
+
 -- name: UpdateSubscriptionStatus :exec
 UPDATE subscriptions SET status = $2, updated_at = NOW() WHERE id = $1;
 

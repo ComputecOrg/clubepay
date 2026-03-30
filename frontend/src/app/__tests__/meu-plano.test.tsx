@@ -39,15 +39,24 @@ import { api, ApiError } from "@/lib/api";
 import { getToken, clearToken } from "@/lib/auth";
 
 const planResponse = {
-  plan_name: "Cafe Diario",
-  business_name: "Cafe Central",
-  price_cents: 2990,
-  status: "active",
-  next_billing_date: "2026-04-15",
-  used: 1,
-  limit: 1,
-  limit_type: "daily",
-  referral_code: "ABC123",
+  plan: {
+    id: 1,
+    name: "Cafe Diario",
+    description: "1 cafe por dia",
+    price_cents: 2990,
+    limit_type: "daily",
+    limit_count: 1,
+  },
+  business: {
+    id: 1,
+    name: "Cafe Central",
+    slug: "cafe-central",
+  },
+  subscription: {
+    id: 1,
+    status: "active",
+    period_end: "2026-04-15T00:00:00Z",
+  },
 };
 
 const referralResponse = { code: "ABC123" };
@@ -79,9 +88,8 @@ describe("MeuPlanoPage", () => {
     });
 
     expect(screen.getByText("Cafe Central")).toBeInTheDocument();
-    expect(screen.getByText(/R\$\s*29,90\/mês/)).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*29,90\/mes/)).toBeInTheDocument();
     expect(screen.getByText("Ativo")).toBeInTheDocument();
-    expect(screen.getByText("1/1 hoje")).toBeInTheDocument();
     expect(screen.getByText("ABC123")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Cancelar assinatura" })

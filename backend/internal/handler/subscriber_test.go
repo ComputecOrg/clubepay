@@ -1,7 +1,6 @@
 package handler_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -25,7 +24,6 @@ func TestMyPlan_Success(t *testing.T) {
 	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano MyPlan", 2990, "daily", 1)
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "myplansub@test.com", "MyPlan Sub", "11999998000")
 
-	// Create subscription directly
 	_, err := h.Queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
 		PlanID:            plan.ID,
 		SubscriberID:      subscriber.ID,
@@ -36,7 +34,7 @@ func TestMyPlan_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/my-plan?business_slug=cafe-myplan", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/my-plan", nil)
 	req = withAuth(req, subscriber.ID, "subscriber")
 	rr := httptest.NewRecorder()
 
@@ -62,22 +60,7 @@ func TestMyPlan_Success(t *testing.T) {
 func TestMyPlan_NoSubscription(t *testing.T) {
 	h := setupHandler(t)
 
-	owner := testutil.SeedOwner(t, h.Queries, "noplnowner@test.com", "NoPlan Owner")
-	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café NoPlan", "cafe-noplan")
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "noplnsub@test.com", "NoPlan Sub", "11999998100")
-
-	req := httptest.NewRequest(http.MethodGet, "/api/my-plan?business_slug=cafe-noplan", nil)
-	req = withAuth(req, subscriber.ID, "subscriber")
-	rr := httptest.NewRecorder()
-
-	h.MyPlan(rr, req)
-
-	assert.Equal(t, http.StatusNotFound, rr.Code)
-}
-
-func TestMyPlan_MissingSlug(t *testing.T) {
-	h := setupHandler(t)
-	subscriber := testutil.SeedSubscriber(t, h.Queries, "myplannoslug@test.com", "MyPlan NoSlug Sub", "11999998300")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/my-plan", nil)
 	req = withAuth(req, subscriber.ID, "subscriber")
@@ -85,63 +68,15 @@ func TestMyPlan_MissingSlug(t *testing.T) {
 
 	h.MyPlan(rr, req)
 
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
-}
-
-func TestMyPlan_BusinessNotFound(t *testing.T) {
-	h := setupHandler(t)
-	subscriber := testutil.SeedSubscriber(t, h.Queries, "myplandnobiz@test.com", "MyPlan NoBiz Sub", "11999998400")
-
-	req := httptest.NewRequest(http.MethodGet, "/api/my-plan?business_slug=nonexistent", nil)
-	req = withAuth(req, subscriber.ID, "subscriber")
-	rr := httptest.NewRecorder()
-
-	h.MyPlan(rr, req)
-
 	assert.Equal(t, http.StatusNotFound, rr.Code)
-}
-
-func TestCancelBySubscriber_BusinessNotFound(t *testing.T) {
-	h := setupHandler(t)
-	subscriber := testutil.SeedSubscriber(t, h.Queries, "selfcancelnobiz@test.com", "SelfCancel NoBiz Sub", "11999998700")
-
-	body := map[string]string{"business_slug": "nonexistent-biz-slug"}
-	b, _ := json.Marshal(body)
-	req := httptest.NewRequest(http.MethodPost, "/api/cancel", bytes.NewReader(b))
-	req.Header.Set("Content-Type", "application/json")
-	req = withAuth(req, subscriber.ID, "subscriber")
-	rr := httptest.NewRecorder()
-
-	h.CancelBySubscriber(rr, req)
-
-	assert.Equal(t, http.StatusNotFound, rr.Code)
-}
-
-func TestCancelBySubscriber_InvalidJSON(t *testing.T) {
-	h := setupHandler(t)
-	subscriber := testutil.SeedSubscriber(t, h.Queries, "selfcanceljson@test.com", "SelfCancel JSON Sub", "11999998500")
-
-	req := httptest.NewRequest(http.MethodPost, "/api/cancel", bytes.NewReader([]byte(`{invalid json`)))
-	req.Header.Set("Content-Type", "application/json")
-	req = withAuth(req, subscriber.ID, "subscriber")
-	rr := httptest.NewRecorder()
-
-	h.CancelBySubscriber(rr, req)
-
-	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestCancelBySubscriber_NoSubscription(t *testing.T) {
 	h := setupHandler(t)
 
-	owner := testutil.SeedOwner(t, h.Queries, "selfcancelnosub@test.com", "SelfCancel NoSub Owner")
-	testutil.SeedBusiness(t, h.Queries, owner.ID, "Café SelfCancel NoSub", "cafe-selfcancel-nosub")
 	subscriber := testutil.SeedSubscriber(t, h.Queries, "selfcancelnosubscriber@test.com", "SelfCancel NoSub Sub", "11999998600")
 
-	body := map[string]string{"business_slug": "cafe-selfcancel-nosub"}
-	b, _ := json.Marshal(body)
-	req := httptest.NewRequest(http.MethodPost, "/api/cancel", bytes.NewReader(b))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest(http.MethodPost, "/api/cancel", nil)
 	req = withAuth(req, subscriber.ID, "subscriber")
 	rr := httptest.NewRecorder()
 
@@ -168,10 +103,7 @@ func TestCancelBySubscriber_Success(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	body := map[string]string{"business_slug": "cafe-selfcancel"}
-	b, _ := json.Marshal(body)
-	req := httptest.NewRequest(http.MethodPost, "/api/cancel", bytes.NewReader(b))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest(http.MethodPost, "/api/cancel", nil)
 	req = withAuth(req, subscriber.ID, "subscriber")
 	rr := httptest.NewRecorder()
 

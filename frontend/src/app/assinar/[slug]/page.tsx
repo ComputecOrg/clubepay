@@ -34,6 +34,31 @@ function formatPrice(cents: number): string {
   });
 }
 
+function formatCPF(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9)
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function getTokenRole(token: string): string | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.role || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function AssinarPage() {
   const router = useRouter();
   const params = useParams();
@@ -50,11 +75,18 @@ export default function AssinarPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  // Auth mode: "register" | "login"
+  const [authMode, setAuthMode] = useState<"register" | "login">("register");
+
   // Register-subscriber form fields
   const [subEmail, setSubEmail] = useState("");
   const [subPassword, setSubPassword] = useState("");
   const [subName, setSubName] = useState("");
   const [subPhone, setSubPhone] = useState("");
+
+  // Login form fields
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -77,7 +109,8 @@ export default function AssinarPage() {
 
   useEffect(() => {
     const token = getToken();
-    setIsLoggedIn(!!token);
+    const isSubscriber = token ? getTokenRole(token) === "subscriber" : false;
+    setIsLoggedIn(isSubscriber);
     fetchPlans();
   }, [fetchPlans]);
 
@@ -92,7 +125,7 @@ export default function AssinarPage() {
     try {
       await api.post<SubscribeResponse>(
         "/api/subscribe",
-        { plan_id: selectedPlanId, cpf, business_slug: slug },
+        { plan_id: Number(selectedPlanId) },
         token
       );
       setSuccess(true);
@@ -101,6 +134,35 @@ export default function AssinarPage() {
         setError(err.message);
       } else {
         setError("Erro ao assinar. Tente novamente.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleLoginAndSubscribe(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    try {
+      const authData = await api.post<AuthResponse>("/api/auth/login", {
+        email: loginEmail,
+        password: loginPassword,
+      });
+      setToken(authData.token);
+
+      await api.post<SubscribeResponse>(
+        "/api/subscribe",
+        { plan_id: Number(selectedPlanId) },
+        authData.token
+      );
+      setSuccess(true);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError("Erro ao entrar e assinar. Tente novamente.");
       }
     } finally {
       setSubmitting(false);
@@ -126,7 +188,7 @@ export default function AssinarPage() {
 
       await api.post<SubscribeResponse>(
         "/api/subscribe",
-        { plan_id: selectedPlanId, business_slug: slug },
+        { plan_id: Number(selectedPlanId) },
         authData.token
       );
       setSuccess(true);
@@ -229,7 +291,7 @@ export default function AssinarPage() {
                 type="text"
                 required
                 value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
+                onChange={(e) => setCpf(formatCPF(e.target.value))}
                 className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
                 placeholder="000.000.000-00"
                 maxLength={14}
@@ -246,90 +308,153 @@ export default function AssinarPage() {
             </button>
           </form>
         ) : (
-          <form
-            onSubmit={handleRegisterAndSubscribe}
-            className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4"
-          >
-            <p className="text-sm text-gray-500">
-              Crie sua conta para assinar o clube
-            </p>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700" htmlFor="subName">
-                Nome completo
-              </label>
-              <input
-                id="subName"
-                type="text"
-                required
-                value={subName}
-                onChange={(e) => setSubName(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
-                placeholder="Maria Silva"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700" htmlFor="subEmail">
-                E-mail
-              </label>
-              <input
-                id="subEmail"
-                type="email"
-                required
-                value={subEmail}
-                onChange={(e) => setSubEmail(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
-                placeholder="seu@email.com"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label
-                className="text-sm font-medium text-gray-700"
-                htmlFor="subPhone"
+          <>
+            <div className="flex rounded-lg bg-gray-100 p-1 mb-4">
+              <button
+                type="button"
+                onClick={() => { setAuthMode("register"); setError(""); }}
+                className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
+                  authMode === "register"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500"
+                }`}
               >
-                Telefone
-              </label>
-              <input
-                id="subPhone"
-                type="tel"
-                required
-                value={subPhone}
-                onChange={(e) => setSubPhone(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
-                placeholder="(11) 99999-9999"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label
-                className="text-sm font-medium text-gray-700"
-                htmlFor="subPassword"
+                Criar conta
+              </button>
+              <button
+                type="button"
+                onClick={() => { setAuthMode("login"); setError(""); }}
+                className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
+                  authMode === "login"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500"
+                }`}
               >
-                Senha
-              </label>
-              <input
-                id="subPassword"
-                type="password"
-                required
-                minLength={8}
-                value={subPassword}
-                onChange={(e) => setSubPassword(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
-                placeholder="Mínimo 8 caracteres"
-              />
+                Ja tenho conta
+              </button>
             </div>
 
-            <button
-              type="submit"
-              disabled={submitting || !selectedPlanId}
-              className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: "#2a7d6e" }}
-            >
-              {submitting ? "Criando conta..." : "Criar conta e assinar"}
-            </button>
-          </form>
+            {authMode === "login" ? (
+              <form
+                onSubmit={handleLoginAndSubscribe}
+                className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="loginEmail">
+                    E-mail
+                  </label>
+                  <input
+                    id="loginEmail"
+                    type="email"
+                    required
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="loginPassword">
+                    Senha
+                  </label>
+                  <input
+                    id="loginPassword"
+                    type="password"
+                    required
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    placeholder="Sua senha"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting || !selectedPlanId}
+                  className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: "#2a7d6e" }}
+                >
+                  {submitting ? "Entrando..." : "Entrar e assinar"}
+                </button>
+              </form>
+            ) : (
+              <form
+                onSubmit={handleRegisterAndSubscribe}
+                className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="subName">
+                    Nome completo
+                  </label>
+                  <input
+                    id="subName"
+                    type="text"
+                    required
+                    value={subName}
+                    onChange={(e) => setSubName(e.target.value)}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    placeholder="Maria Silva"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="subEmail">
+                    E-mail
+                  </label>
+                  <input
+                    id="subEmail"
+                    type="email"
+                    required
+                    value={subEmail}
+                    onChange={(e) => setSubEmail(e.target.value)}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    placeholder="seu@email.com"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="subPhone">
+                    Telefone
+                  </label>
+                  <input
+                    id="subPhone"
+                    type="tel"
+                    required
+                    value={subPhone}
+                    onChange={(e) => setSubPhone(formatPhone(e.target.value))}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    placeholder="(11) 99999-9999"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="subPassword">
+                    Senha
+                  </label>
+                  <input
+                    id="subPassword"
+                    type="password"
+                    required
+                    minLength={8}
+                    value={subPassword}
+                    onChange={(e) => setSubPassword(e.target.value)}
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    placeholder="Minimo 8 caracteres"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={submitting || !selectedPlanId}
+                  className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: "#2a7d6e" }}
+                >
+                  {submitting ? "Criando conta..." : "Criar conta e assinar"}
+                </button>
+              </form>
+            )}
+          </>
         )}
       </div>
     </div>
