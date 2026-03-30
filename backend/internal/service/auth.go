@@ -128,13 +128,13 @@ func (s *AuthService) Login(ctx context.Context, input domain.LoginInput) (*doma
 	user, err := s.Queries.GetUserByEmail(ctx, input.Email)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, domain.NewErrBadRequest("credenciais inválidas")
+			return nil, domain.NewErrUnauthorized("credenciais inválidas")
 		}
 		return nil, domain.NewErrInternal("erro ao buscar usuário", err)
 	}
 
 	if !domain.CheckPassword(input.Password, user.PasswordHash) {
-		return nil, domain.NewErrBadRequest("credenciais inválidas")
+		return nil, domain.NewErrUnauthorized("credenciais inválidas")
 	}
 
 	expiry := domain.OwnerJWTExpiry

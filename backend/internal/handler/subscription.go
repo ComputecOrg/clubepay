@@ -27,6 +27,9 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Sync PSP reference so that test overrides of h.PSP propagate to the service.
+	h.Subscriptions.PSP = h.PSP
+
 	sub, err := h.Subscriptions.Subscribe(r.Context(), subscriberID, service.SubscribeInput{
 		PlanID: input.PlanID,
 	})

@@ -167,7 +167,7 @@ func TestAuthService_Login_WrongPassword(t *testing.T) {
 	require.Error(t, err)
 	var svcErr *domain.ServiceError
 	require.ErrorAs(t, err, &svcErr)
-	assert.Equal(t, 400, svcErr.Code)
+	assert.Equal(t, 401, svcErr.Code)
 }
 
 func TestAuthService_Login_UserNotFound(t *testing.T) {
@@ -181,7 +181,7 @@ func TestAuthService_Login_UserNotFound(t *testing.T) {
 	require.Error(t, err)
 	var svcErr *domain.ServiceError
 	require.ErrorAs(t, err, &svcErr)
-	assert.Equal(t, 400, svcErr.Code)
+	assert.Equal(t, 401, svcErr.Code)
 }
 
 func TestAuthService_Login_SubscriberRole(t *testing.T) {

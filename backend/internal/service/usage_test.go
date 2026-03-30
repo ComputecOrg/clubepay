@@ -29,7 +29,7 @@ func TestUsageService_Validate(t *testing.T) {
 		resp, err := svc.Validate(ctx, subscriber.ID, domain.ValidateUsageInput{BusinessSlug: "cafe-usage-val"})
 		require.NoError(t, err)
 		require.NotNil(t, resp)
-		assert.Equal(t, "ok", resp.Status)
+		assert.Equal(t, "validated", resp.Status)
 		assert.Equal(t, int64(1), resp.Used)
 		assert.Equal(t, int32(2), resp.Limit)
 		assert.Equal(t, "Plano Diário", resp.PlanName)
@@ -97,7 +97,7 @@ func TestUsageService_ValidateByOwner(t *testing.T) {
 		resp, err := svc.ValidateByOwner(ctx, owner.ID, domain.ValidateUsageOwnerInput{SubscriberID: subscriber.ID})
 		require.NoError(t, err)
 		require.NotNil(t, resp)
-		assert.Equal(t, "ok", resp.Status)
+		assert.Equal(t, "validated", resp.Status)
 		assert.Equal(t, int64(1), resp.Used)
 	})
 

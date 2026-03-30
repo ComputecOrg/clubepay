@@ -148,7 +148,7 @@ func (s *UsageService) validateUsage(ctx context.Context, subscriberID, business
 	}
 
 	return &domain.ValidateUsageResponse{
-		Status:   "ok",
+		Status:   "validated",
 		Used:     count + 1,
 		Limit:    plan.LimitCount,
 		PlanName: plan.Name,

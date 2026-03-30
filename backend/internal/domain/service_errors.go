@@ -32,6 +32,10 @@ func NewErrForbidden(msg string) *ServiceError {
 	return NewServiceError(http.StatusForbidden, msg, nil)
 }
 
+func NewErrUnauthorized(msg string) *ServiceError {
+	return NewServiceError(http.StatusUnauthorized, msg, nil)
+}
+
 func NewErrBadRequest(msg string) *ServiceError {
 	return NewServiceError(http.StatusBadRequest, msg, nil)
 }
