@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/psp"
@@ -94,10 +95,26 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check for active referral discount
+	discountPercent := int32(0)
+	referral, refErr := h.Queries.GetReferralByReferredAndBusiness(r.Context(), repository.GetReferralByReferredAndBusinessParams{
+		ReferredID: subscriberID,
+		BusinessID: plan.BusinessID,
+	})
+	if refErr == nil {
+		discountPercent = 10
+	}
+
+	// Calculate discounted price
+	priceCents := plan.PriceCents
+	if discountPercent > 0 {
+		priceCents = priceCents * int64(100-discountPercent) / 100
+	}
+
 	// Create PSP subscription
 	pspSub, err := h.PSP.CreateSubscription(r.Context(), psp.CreateSubscriptionRequest{
 		CustomerID:  customer.ID,
-		PriceCents:  plan.PriceCents,
+		PriceCents:  priceCents,
 		Description: plan.Name,
 		Cycle:       "MONTHLY",
 	})
@@ -109,13 +126,19 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 
 	// Create DB subscription
 	periodEnd := time.Now().AddDate(0, 1, 0)
-	sub, err := h.Queries.CreateSubscription(r.Context(), repository.CreateSubscriptionParams{
+	referredBy := pgtype.Int8{}
+	if refErr == nil {
+		referredBy = pgtype.Int8{Int64: referral.ReferrerID, Valid: true}
+	}
+	sub, err := h.Queries.CreateSubscriptionWithDiscount(r.Context(), repository.CreateSubscriptionWithDiscountParams{
 		PlanID:            plan.ID,
 		SubscriberID:      subscriberID,
 		BusinessID:        plan.BusinessID,
 		PspSubscriptionID: pgText(pspSub.ID),
 		Status:            "active",
 		PeriodEnd:         pgTimestamptz(periodEnd),
+		ReferredBy:        referredBy,
+		DiscountPercent:   discountPercent,
 	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "erro ao criar assinatura")

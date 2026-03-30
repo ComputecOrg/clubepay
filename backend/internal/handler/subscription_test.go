@@ -323,6 +323,94 @@ func TestCancelSubscriptionByOwner_InvalidID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, cancelRr.Code)
 }
 
+func TestSubscribe_WithReferralDiscount(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "discountowner@test.com", "Discount Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café Discount", "cafe-discount")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano Discount", 10000, "daily", 1)
+
+	// Referrer subscribes first (to have an existing subscriber who can refer)
+	referrer := testutil.SeedSubscriber(t, h.Queries, "referrerdiscount@test.com", "Referrer Discount", "11999994000")
+
+	// Get referrer's code via MyReferralCode
+	codeReq := httptest.NewRequest(http.MethodGet, "/api/my-referral-code?business_slug=cafe-discount", nil)
+	codeReq = withAuth(codeReq, referrer.ID, "subscriber")
+	codeRr := httptest.NewRecorder()
+	h.MyReferralCode(codeRr, codeReq)
+	require.Equal(t, http.StatusOK, codeRr.Code)
+
+	var codeResp map[string]string
+	require.NoError(t, json.NewDecoder(codeRr.Body).Decode(&codeResp))
+	referralCode := codeResp["code"]
+
+	// New subscriber applies the referral code
+	referred := testutil.SeedSubscriber(t, h.Queries, "referreddiscount@test.com", "Referred Discount", "11999994001")
+	applyBody, _ := json.Marshal(map[string]string{"code": referralCode})
+	applyReq := httptest.NewRequest(http.MethodPost, "/api/referrals/apply", bytes.NewReader(applyBody))
+	applyReq.Header.Set("Content-Type", "application/json")
+	applyReq = withAuth(applyReq, referred.ID, "subscriber")
+	applyRr := httptest.NewRecorder()
+	h.ApplyReferral(applyRr, applyReq)
+	require.Equal(t, http.StatusOK, applyRr.Code)
+
+	// Set up mock PSP to capture the subscription request
+	mockPSP := &psp.MockPSP{}
+	h.PSP = mockPSP
+
+	// Subscribe with referral discount
+	subBody, _ := json.Marshal(map[string]interface{}{"plan_id": plan.ID})
+	subReq := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader(subBody))
+	subReq.Header.Set("Content-Type", "application/json")
+	subReq = withAuth(subReq, referred.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, subReq)
+
+	require.Equal(t, http.StatusCreated, rr.Code)
+
+	// PSP should have received 10% discounted price (10000 * 90 / 100 = 9000)
+	assert.Equal(t, int64(9000), mockPSP.LastSubscriptionRequest.PriceCents)
+
+	// DB record should have discount_percent = 10
+	var subResp map[string]interface{}
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&subResp))
+	assert.Equal(t, float64(10), subResp["discount_percent"])
+}
+
+func TestSubscribe_NoReferral_FullPrice(t *testing.T) {
+	h := setupHandler(t)
+
+	owner := testutil.SeedOwner(t, h.Queries, "fullpriceowner@test.com", "Full Price Owner")
+	biz := testutil.SeedBusiness(t, h.Queries, owner.ID, "Café FullPrice", "cafe-fullprice")
+	plan := testutil.SeedPlan(t, h.Queries, biz.ID, "Plano Full", 10000, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, h.Queries, "fullpricesub@test.com", "Full Price Sub", "11999994100")
+
+	_ = biz
+
+	// Set up mock PSP to capture the subscription request
+	mockPSP := &psp.MockPSP{}
+	h.PSP = mockPSP
+
+	subBody, _ := json.Marshal(map[string]interface{}{"plan_id": plan.ID})
+	subReq := httptest.NewRequest(http.MethodPost, "/api/subscribe", bytes.NewReader(subBody))
+	subReq.Header.Set("Content-Type", "application/json")
+	subReq = withAuth(subReq, subscriber.ID, "subscriber")
+	rr := httptest.NewRecorder()
+
+	h.Subscribe(rr, subReq)
+
+	require.Equal(t, http.StatusCreated, rr.Code)
+
+	// PSP should have received full price (no discount)
+	assert.Equal(t, int64(10000), mockPSP.LastSubscriptionRequest.PriceCents)
+
+	// DB record should have discount_percent = 0
+	var subResp map[string]interface{}
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&subResp))
+	assert.Equal(t, float64(0), subResp["discount_percent"])
+}
+
 func TestSubscribe_PSPCustomerError(t *testing.T) {
 	h := setupHandler(t)
 

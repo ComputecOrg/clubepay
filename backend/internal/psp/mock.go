@@ -4,12 +4,13 @@ package psp
 import "context"
 
 type MockPSP struct {
-	CreateCustomerFn     func(ctx context.Context, req CreateCustomerRequest) (*Customer, error)
-	CreateSubscriptionFn func(ctx context.Context, req CreateSubscriptionRequest) (*Subscription, error)
-	CancelSubscriptionFn func(ctx context.Context, subscriptionID string) error
-	GetSubscriptionFn    func(ctx context.Context, subscriptionID string) (*Subscription, error)
-	GetPaymentsFn        func(ctx context.Context, subscriptionID string) ([]Payment, error)
-	ValidateWebhookFn    func(payload []byte, signature string) bool
+	CreateCustomerFn        func(ctx context.Context, req CreateCustomerRequest) (*Customer, error)
+	CreateSubscriptionFn    func(ctx context.Context, req CreateSubscriptionRequest) (*Subscription, error)
+	CancelSubscriptionFn    func(ctx context.Context, subscriptionID string) error
+	GetSubscriptionFn       func(ctx context.Context, subscriptionID string) (*Subscription, error)
+	GetPaymentsFn           func(ctx context.Context, subscriptionID string) ([]Payment, error)
+	ValidateWebhookFn       func(payload []byte, signature string) bool
+	LastSubscriptionRequest CreateSubscriptionRequest
 }
 
 func (m *MockPSP) CreateCustomer(ctx context.Context, req CreateCustomerRequest) (*Customer, error) {
@@ -20,10 +21,11 @@ func (m *MockPSP) CreateCustomer(ctx context.Context, req CreateCustomerRequest)
 }
 
 func (m *MockPSP) CreateSubscription(ctx context.Context, req CreateSubscriptionRequest) (*Subscription, error) {
+	m.LastSubscriptionRequest = req
 	if m.CreateSubscriptionFn != nil {
 		return m.CreateSubscriptionFn(ctx, req)
 	}
-	return &Subscription{ID: "sub_mock_123", Status: "ACTIVE"}, nil
+	return &Subscription{ID: "mock_sub_" + req.CustomerID, Status: "ACTIVE"}, nil
 }
 
 func (m *MockPSP) CancelSubscription(ctx context.Context, subscriptionID string) error {
