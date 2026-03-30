@@ -45,6 +45,14 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 	r.Post("/api/psp/webhook", h.PSPWebhook)
 	r.Post("/api/cron/reconcile", h.Reconcile)
 
+	// Shared auth routes (any authenticated user)
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Auth(cfg.JWTSecret))
+		r.Get("/api/profile", h.GetProfile)
+		r.Put("/api/profile", h.UpdateProfile)
+		r.Post("/api/profile/change-password", h.ChangePassword)
+	})
+
 	// Owner routes
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Auth(cfg.JWTSecret))
