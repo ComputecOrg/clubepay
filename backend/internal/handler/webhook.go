@@ -51,6 +51,12 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	slog.Info("webhook received",
+		"event", payload.Event,
+		"psp_subscription_id", payload.Payment.Subscription,
+		"payment_status", payload.Payment.Status,
+	)
+
 	if payload.Payment.Subscription == "" {
 		// Not a subscription-related event, ignore
 		w.WriteHeader(http.StatusOK)
@@ -81,6 +87,7 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 				writeError(w, http.StatusInternalServerError, "failed to update subscription")
 				return
 			}
+			slog.Info("webhook processed", "event", payload.Event, "subscription_id", sub.ID, "action", "reactivated")
 		}
 
 		go func() {
@@ -104,6 +111,7 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "failed to update subscription")
 			return
 		}
+		slog.Info("webhook processed", "event", payload.Event, "subscription_id", sub.ID, "action", "grace_set")
 
 	case "PAYMENT_DELETED", "PAYMENT_REFUNDED":
 		// Cancel subscription
@@ -112,6 +120,7 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusInternalServerError, "failed to cancel subscription")
 			return
 		}
+		slog.Info("webhook processed", "event", payload.Event, "subscription_id", sub.ID, "action", "cancelled")
 	}
 
 	w.WriteHeader(http.StatusOK)
