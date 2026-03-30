@@ -17,6 +17,8 @@ type Config struct {
 	SMTPPort           string
 	SMTPUsername       string
 	SMTPPassword       string
+	CORSOrigins        string
+	FrontendURL        string
 }
 
 func Load() (*Config, error) {
@@ -32,6 +34,8 @@ func Load() (*Config, error) {
 		SMTPPort:           getEnv("SMTP_PORT", "587"),
 		SMTPUsername:       os.Getenv("SMTP_USERNAME"),
 		SMTPPassword:       os.Getenv("SMTP_PASSWORD"),
+		CORSOrigins:        getEnv("CORS_ORIGINS", "*"),
+		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
 	}
 
 	if cfg.DatabaseURL == "" {

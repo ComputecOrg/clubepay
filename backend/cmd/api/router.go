@@ -17,7 +17,7 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 	r.Use(chiMiddleware.RequestID)
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Recoverer)
-	r.Use(middleware.CORS)
+	r.Use(middleware.CORS(cfg.CORSOrigins))
 	r.Use(middleware.SecurityHeaders)
 	r.Use(middleware.Logging)
 
