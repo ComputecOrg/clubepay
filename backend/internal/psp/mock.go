@@ -25,7 +25,7 @@ func (m *MockPSP) CreateSubscription(ctx context.Context, req CreateSubscription
 	if m.CreateSubscriptionFn != nil {
 		return m.CreateSubscriptionFn(ctx, req)
 	}
-	return &Subscription{ID: "mock_sub_" + req.CustomerID, Status: "ACTIVE"}, nil
+	return &Subscription{ID: "sub_mock_123", Status: "ACTIVE"}, nil
 }
 
 func (m *MockPSP) CancelSubscription(ctx context.Context, subscriptionID string) error {
