@@ -6,6 +6,9 @@ interface RequestOptions {
   token?: string;
 }
 
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 500;
+
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token } = opts;
 
@@ -17,18 +20,33 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let lastError: ApiError | null = null;
 
-  if (!res.ok) {
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * attempt));
+    }
+
+    const res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (res.ok) {
+      return res.json();
+    }
+
     const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new ApiError(res.status, error.message || res.statusText);
+    lastError = new ApiError(res.status, error.message || res.statusText);
+
+    // Only retry on 5xx server errors
+    if (res.status < 500) {
+      throw lastError;
+    }
   }
 
-  return res.json();
+  throw lastError!;
 }
 
 export class ApiError extends Error {

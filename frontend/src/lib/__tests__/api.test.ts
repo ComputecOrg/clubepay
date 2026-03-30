@@ -74,12 +74,17 @@ describe("api.get", () => {
   });
 
   it("falls back to statusText when json parse fails", async () => {
-    mockFetch.mockResolvedValueOnce({
+    // With retry logic, 500 errors are retried up to MAX_RETRIES (2) times = 3 total attempts
+    const failResponse = {
       ok: false,
       status: 500,
       statusText: "Internal Server Error",
       json: () => Promise.reject(new Error("invalid json")),
-    });
+    };
+    mockFetch
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValueOnce(failResponse);
 
     try {
       await api.get("/api/broken");
@@ -164,5 +169,46 @@ describe("ApiError", () => {
     expect(err.status).toBe(422);
     expect(err.message).toBe("validation failed");
     expect(err).toBeInstanceOf(Error);
+  });
+});
+
+describe("retry logic", () => {
+  it("retries on 500 error and succeeds on second attempt", async () => {
+    let attempts = 0;
+    global.fetch = vi.fn(() => {
+      attempts++;
+      if (attempts === 1) {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          statusText: "Internal Server Error",
+          json: () => Promise.resolve({ message: "server error" }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ data: "ok" }),
+      } as Response);
+    });
+
+    const result = await api.get<{ data: string }>("/test");
+    expect(result.data).toBe("ok");
+    expect(attempts).toBe(2);
+  });
+
+  it("does not retry on 4xx errors", async () => {
+    let attempts = 0;
+    global.fetch = vi.fn(() => {
+      attempts++;
+      return Promise.resolve({
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        json: () => Promise.resolve({ message: "bad request" }),
+      } as Response);
+    });
+
+    await expect(api.get("/test")).rejects.toThrow();
+    expect(attempts).toBe(1);
   });
 });
