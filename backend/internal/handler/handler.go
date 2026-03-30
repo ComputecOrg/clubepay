@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 
 	"github.com/clubepay/backend/internal/config"
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
@@ -53,4 +55,14 @@ func pgText(s string) pgtype.Text {
 
 func pgTimestamptz(t time.Time) pgtype.Timestamptz {
 	return pgtype.Timestamptz{Time: t, Valid: true}
+}
+
+func handleServiceError(w http.ResponseWriter, err error) {
+	var svcErr *domain.ServiceError
+	if errors.As(err, &svcErr) {
+		writeError(w, svcErr.Code, svcErr.Message)
+		return
+	}
+	slog.Error("unhandled service error", "error", err)
+	writeError(w, http.StatusInternalServerError, "erro interno")
 }
