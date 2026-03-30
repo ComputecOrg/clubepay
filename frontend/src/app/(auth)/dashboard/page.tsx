@@ -130,12 +130,17 @@ export default function DashboardPage() {
               clubepay.com/{business?.slug}
             </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            Sair
-          </button>
+          <div className="flex items-center gap-4">
+            <Link href="/perfil" className="text-sm font-semibold" style={{ color: "#2a7d6e" }}>
+              Meu perfil
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </header>
 
