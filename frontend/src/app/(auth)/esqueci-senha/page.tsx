@@ -1,21 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { setToken } from "@/lib/auth";
 
-interface LoginResponse {
-  token: string;
-}
-
-export default function LoginPage() {
-  const router = useRouter();
+export default function EsqueciSenhaPage() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,34 +16,55 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await api.post<LoginResponse>("/api/auth/login", {
-        email,
-        password,
-      });
-      setToken(data.token);
-      router.push("/dashboard");
+      await api.post("/api/auth/request-password-reset", { email });
+      setSuccess(true);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Erro ao fazer login. Tente novamente.");
+        setError("Erro ao enviar e-mail. Tente novamente.");
       }
     } finally {
       setLoading(false);
     }
   }
 
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold" style={{ color: "#2a7d6e" }}>
+              ClubePay
+            </h1>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex flex-col gap-4 text-center">
+            <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+              Email enviado! Verifique sua caixa de entrada.
+            </div>
+            <p className="text-sm text-gray-500">
+              <Link
+                href="/login"
+                className="font-semibold"
+                style={{ color: "#2a7d6e" }}
+              >
+                Voltar para o login
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1
-            className="text-3xl font-bold"
-            style={{ color: "#2a7d6e" }}
-          >
+          <h1 className="text-3xl font-bold" style={{ color: "#2a7d6e" }}>
             ClubePay
           </h1>
-          <p className="mt-2 text-gray-500">Entre na sua conta</p>
+          <p className="mt-2 text-gray-500">Recupere sua senha</p>
         </div>
 
         <form
@@ -78,47 +92,22 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label
-              className="text-sm font-medium text-gray-700"
-              htmlFor="password"
-            >
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
-              placeholder="••••••••"
-            />
-          </div>
-
           <button
             type="submit"
             disabled={loading}
             className="mt-2 w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: "#2a7d6e" }}
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? "Enviando..." : "Enviar link de recuperação"}
           </button>
 
           <p className="text-center text-sm text-gray-500">
-            <Link href="/esqueci-senha" className="font-semibold" style={{ color: "#2a7d6e" }}>
-              Esqueci minha senha
-            </Link>
-          </p>
-
-          <p className="text-center text-sm text-gray-500">
-            Não tem conta?{" "}
             <Link
-              href="/register"
-              className="font-medium"
+              href="/login"
+              className="font-semibold"
               style={{ color: "#2a7d6e" }}
             >
-              Criar agora
+              Voltar para o login
             </Link>
           </p>
         </form>
