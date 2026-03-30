@@ -14,3 +14,6 @@ UPDATE businesses
 SET name = $2, segment = $3, address = $4, logo_url = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING *;
+
+-- name: GetBusinessByID :one
+SELECT * FROM businesses WHERE id = $1;

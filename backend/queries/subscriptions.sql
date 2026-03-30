@@ -39,3 +39,8 @@ SELECT * FROM subscriptions WHERE status = 'grace' AND grace_deadline < NOW();
 
 -- name: ListPendingSubscriptions :many
 SELECT * FROM subscriptions WHERE status = 'pending';
+
+-- name: CreateSubscriptionWithDiscount :one
+INSERT INTO subscriptions (plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, referred_by, discount_percent)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING *;

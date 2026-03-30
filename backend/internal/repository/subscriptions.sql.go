@@ -34,7 +34,7 @@ func (q *Queries) CountActiveSubscriptionsByBusinessID(ctx context.Context, busi
 const createSubscription = `-- name: CreateSubscription :one
 INSERT INTO subscriptions (plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, referred_by)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at
+RETURNING id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent
 `
 
 type CreateSubscriptionParams struct {
@@ -70,12 +70,59 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 		&i.ReferredBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountPercent,
+	)
+	return i, err
+}
+
+const createSubscriptionWithDiscount = `-- name: CreateSubscriptionWithDiscount :one
+INSERT INTO subscriptions (plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, referred_by, discount_percent)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent
+`
+
+type CreateSubscriptionWithDiscountParams struct {
+	PlanID            int64              `json:"plan_id"`
+	SubscriberID      int64              `json:"subscriber_id"`
+	BusinessID        int64              `json:"business_id"`
+	PspSubscriptionID pgtype.Text        `json:"psp_subscription_id"`
+	Status            string             `json:"status"`
+	PeriodEnd         pgtype.Timestamptz `json:"period_end"`
+	ReferredBy        pgtype.Int8        `json:"referred_by"`
+	DiscountPercent   int32              `json:"discount_percent"`
+}
+
+func (q *Queries) CreateSubscriptionWithDiscount(ctx context.Context, arg CreateSubscriptionWithDiscountParams) (Subscription, error) {
+	row := q.db.QueryRow(ctx, createSubscriptionWithDiscount,
+		arg.PlanID,
+		arg.SubscriberID,
+		arg.BusinessID,
+		arg.PspSubscriptionID,
+		arg.Status,
+		arg.PeriodEnd,
+		arg.ReferredBy,
+		arg.DiscountPercent,
+	)
+	var i Subscription
+	err := row.Scan(
+		&i.ID,
+		&i.PlanID,
+		&i.SubscriberID,
+		&i.BusinessID,
+		&i.PspSubscriptionID,
+		&i.Status,
+		&i.PeriodEnd,
+		&i.GraceDeadline,
+		&i.ReferredBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DiscountPercent,
 	)
 	return i, err
 }
 
 const getActiveSubscription = `-- name: GetActiveSubscription :one
-SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at FROM subscriptions
+SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions
 WHERE subscriber_id = $1 AND business_id = $2 AND status IN ('active', 'grace')
 LIMIT 1
 `
@@ -100,12 +147,13 @@ func (q *Queries) GetActiveSubscription(ctx context.Context, arg GetActiveSubscr
 		&i.ReferredBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountPercent,
 	)
 	return i, err
 }
 
 const getSubscriptionByID = `-- name: GetSubscriptionByID :one
-SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at FROM subscriptions WHERE id = $1
+SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions WHERE id = $1
 `
 
 func (q *Queries) GetSubscriptionByID(ctx context.Context, id int64) (Subscription, error) {
@@ -123,12 +171,13 @@ func (q *Queries) GetSubscriptionByID(ctx context.Context, id int64) (Subscripti
 		&i.ReferredBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountPercent,
 	)
 	return i, err
 }
 
 const getSubscriptionByPSPID = `-- name: GetSubscriptionByPSPID :one
-SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at FROM subscriptions WHERE psp_subscription_id = $1
+SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions WHERE psp_subscription_id = $1
 `
 
 func (q *Queries) GetSubscriptionByPSPID(ctx context.Context, pspSubscriptionID pgtype.Text) (Subscription, error) {
@@ -146,12 +195,13 @@ func (q *Queries) GetSubscriptionByPSPID(ctx context.Context, pspSubscriptionID 
 		&i.ReferredBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DiscountPercent,
 	)
 	return i, err
 }
 
 const listGraceExpiredSubscriptions = `-- name: ListGraceExpiredSubscriptions :many
-SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at FROM subscriptions WHERE status = 'grace' AND grace_deadline < NOW()
+SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions WHERE status = 'grace' AND grace_deadline < NOW()
 `
 
 func (q *Queries) ListGraceExpiredSubscriptions(ctx context.Context) ([]Subscription, error) {
@@ -175,6 +225,7 @@ func (q *Queries) ListGraceExpiredSubscriptions(ctx context.Context) ([]Subscrip
 			&i.ReferredBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DiscountPercent,
 		); err != nil {
 			return nil, err
 		}
@@ -187,7 +238,7 @@ func (q *Queries) ListGraceExpiredSubscriptions(ctx context.Context) ([]Subscrip
 }
 
 const listPendingSubscriptions = `-- name: ListPendingSubscriptions :many
-SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at FROM subscriptions WHERE status = 'pending'
+SELECT id, plan_id, subscriber_id, business_id, psp_subscription_id, status, period_end, grace_deadline, referred_by, created_at, updated_at, discount_percent FROM subscriptions WHERE status = 'pending'
 `
 
 func (q *Queries) ListPendingSubscriptions(ctx context.Context) ([]Subscription, error) {
@@ -211,6 +262,7 @@ func (q *Queries) ListPendingSubscriptions(ctx context.Context) ([]Subscription,
 			&i.ReferredBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DiscountPercent,
 		); err != nil {
 			return nil, err
 		}
@@ -223,7 +275,7 @@ func (q *Queries) ListPendingSubscriptions(ctx context.Context) ([]Subscription,
 }
 
 const listSubscriptionsByBusinessID = `-- name: ListSubscriptionsByBusinessID :many
-SELECT s.id, s.plan_id, s.subscriber_id, s.business_id, s.psp_subscription_id, s.status, s.period_end, s.grace_deadline, s.referred_by, s.created_at, s.updated_at, u.name as subscriber_name, u.email as subscriber_email, u.phone as subscriber_phone, p.name as plan_name
+SELECT s.id, s.plan_id, s.subscriber_id, s.business_id, s.psp_subscription_id, s.status, s.period_end, s.grace_deadline, s.referred_by, s.created_at, s.updated_at, s.discount_percent, u.name as subscriber_name, u.email as subscriber_email, u.phone as subscriber_phone, p.name as plan_name
 FROM subscriptions s
 JOIN users u ON u.id = s.subscriber_id
 JOIN plans p ON p.id = s.plan_id
@@ -243,6 +295,7 @@ type ListSubscriptionsByBusinessIDRow struct {
 	ReferredBy        pgtype.Int8        `json:"referred_by"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DiscountPercent   int32              `json:"discount_percent"`
 	SubscriberName    string             `json:"subscriber_name"`
 	SubscriberEmail   string             `json:"subscriber_email"`
 	SubscriberPhone   pgtype.Text        `json:"subscriber_phone"`
@@ -270,6 +323,7 @@ func (q *Queries) ListSubscriptionsByBusinessID(ctx context.Context, businessID 
 			&i.ReferredBy,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DiscountPercent,
 			&i.SubscriberName,
 			&i.SubscriberEmail,
 			&i.SubscriberPhone,

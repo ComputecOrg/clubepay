@@ -20,6 +20,15 @@ type Business struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type PasswordReset struct {
+	ID        int64              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	Token     string             `json:"token"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	Used      bool               `json:"used"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type Plan struct {
 	ID          int64              `json:"id"`
 	BusinessID  int64              `json:"business_id"`
@@ -55,6 +64,7 @@ type Subscription struct {
 	ReferredBy        pgtype.Int8        `json:"referred_by"`
 	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	DiscountPercent   int32              `json:"discount_percent"`
 }
 
 type Usage struct {
@@ -71,4 +81,5 @@ type User struct {
 	Phone        pgtype.Text        `json:"phone"`
 	Role         string             `json:"role"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }

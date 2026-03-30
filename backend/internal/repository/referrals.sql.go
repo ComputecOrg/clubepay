@@ -77,6 +77,32 @@ func (q *Queries) GetReferralByCode(ctx context.Context, code string) (Referral,
 	return i, err
 }
 
+const getReferralByReferredAndBusiness = `-- name: GetReferralByReferredAndBusiness :one
+SELECT id, referrer_id, referred_id, business_id, code, active, created_at FROM referrals
+WHERE referred_id = $1 AND business_id = $2 AND referrer_id != referred_id AND active = true
+LIMIT 1
+`
+
+type GetReferralByReferredAndBusinessParams struct {
+	ReferredID int64 `json:"referred_id"`
+	BusinessID int64 `json:"business_id"`
+}
+
+func (q *Queries) GetReferralByReferredAndBusiness(ctx context.Context, arg GetReferralByReferredAndBusinessParams) (Referral, error) {
+	row := q.db.QueryRow(ctx, getReferralByReferredAndBusiness, arg.ReferredID, arg.BusinessID)
+	var i Referral
+	err := row.Scan(
+		&i.ID,
+		&i.ReferrerID,
+		&i.ReferredID,
+		&i.BusinessID,
+		&i.Code,
+		&i.Active,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getReferralCodeBySubscriberAndBusiness = `-- name: GetReferralCodeBySubscriberAndBusiness :one
 SELECT code FROM referrals
 WHERE referrer_id = $1 AND business_id = $2
