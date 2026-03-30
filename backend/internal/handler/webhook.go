@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/repository"
 )
 
@@ -79,6 +82,16 @@ func (h *Handler) PSPWebhook(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
+		go func() {
+			subscriber, subErr := h.Queries.GetUserByID(context.Background(), sub.SubscriberID)
+			plan, planErr := h.Queries.GetPlanByID(context.Background(), sub.PlanID)
+			if subErr == nil && planErr == nil {
+				amount := fmt.Sprintf("R$ %.2f", float64(plan.PriceCents)/100)
+				subject, body := email.PaymentConfirmedEmail(subscriber.Name, plan.Name, amount)
+				h.Email.Send(subscriber.Email, subject, body)
+			}
+		}()
 
 	case "PAYMENT_OVERDUE":
 		// Set subscription to grace with 3-day deadline

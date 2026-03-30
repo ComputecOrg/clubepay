@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
@@ -144,6 +146,15 @@ func (h *Handler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "erro ao criar assinatura")
 		return
 	}
+
+	// Send welcome email
+	go func() {
+		biz, bizErr := h.Queries.GetBusinessByID(context.Background(), plan.BusinessID)
+		if bizErr == nil {
+			subject, body := email.WelcomeEmail(subscriber.Name, plan.Name, biz.Name)
+			h.Email.Send(subscriber.Email, subject, body)
+		}
+	}()
 
 	writeJSON(w, http.StatusCreated, sub)
 }

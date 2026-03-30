@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/middleware"
 	"github.com/clubepay/backend/internal/repository"
 )
@@ -126,6 +128,19 @@ func (h *Handler) CancelBySubscriber(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, "erro ao cancelar assinatura")
 		return
 	}
+
+	go func() {
+		user, userErr := h.Queries.GetUserByID(context.Background(), subscriberID)
+		plan, planErr := h.Queries.GetPlanByID(context.Background(), sub.PlanID)
+		if userErr == nil && planErr == nil {
+			validUntil := ""
+			if sub.PeriodEnd.Valid {
+				validUntil = sub.PeriodEnd.Time.Format("02/01/2006")
+			}
+			subject, body := email.SubscriptionCancelledEmail(user.Name, plan.Name, validUntil)
+			h.Email.Send(user.Email, subject, body)
+		}
+	}()
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"status":     "cancelled",
