@@ -27,6 +27,9 @@ type Config struct {
 	SpendingAlertEmail   string
 	WarnThresholdPct     int
 	CriticalThresholdPct int
+	// Analytics (GA4)
+	GA4MeasurementID string
+	GA4APISecret     string
 }
 
 func Load() (*Config, error) {
@@ -49,6 +52,8 @@ func Load() (*Config, error) {
 		SpendingAlertEmail: getEnv("SPENDING_ALERT_EMAIL", "ceo@clubepay.com"),
 		WarnThresholdPct:   parseIntEnv("WARN_THRESHOLD_PCT", 80),
 		CriticalThresholdPct: parseIntEnv("CRITICAL_THRESHOLD_PCT", 95),
+		GA4MeasurementID:     os.Getenv("GA4_MEASUREMENT_ID"),
+		GA4APISecret:         os.Getenv("GA4_API_SECRET"),
 	}
 
 	if cfg.DatabaseURL == "" {

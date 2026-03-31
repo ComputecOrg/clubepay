@@ -177,3 +177,39 @@ func TestParseInt64Env(t *testing.T) {
 		assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents) // fallback value
 	})
 }
+
+func TestLoad_GA4Config(t *testing.T) {
+	t.Run("with GA4 env vars set", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("GA4_MEASUREMENT_ID", "G-XXXXXXXXXX")
+		t.Setenv("GA4_API_SECRET", "api-secret-123")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("MONTHLY_BUDGET_CENTS", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("WARN_THRESHOLD_PCT", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, "G-XXXXXXXXXX", cfg.GA4MeasurementID)
+		assert.Equal(t, "api-secret-123", cfg.GA4APISecret)
+	})
+
+	t.Run("with GA4 env vars empty", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("GA4_MEASUREMENT_ID", "")
+		t.Setenv("GA4_API_SECRET", "")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("MONTHLY_BUDGET_CENTS", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("WARN_THRESHOLD_PCT", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, "", cfg.GA4MeasurementID)
+		assert.Equal(t, "", cfg.GA4APISecret)
+	})
+}
