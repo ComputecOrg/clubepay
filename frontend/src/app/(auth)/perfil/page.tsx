@@ -183,8 +183,7 @@ export default function PerfilPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Seu nome"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2"
-                style={{ "--tw-ring-color": "#2a7d6e" } as React.CSSProperties}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -197,8 +196,7 @@ export default function PerfilPage() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="(11) 99999-9999"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2"
-                style={{ "--tw-ring-color": "#2a7d6e" } as React.CSSProperties}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -212,8 +210,7 @@ export default function PerfilPage() {
             <button
               type="submit"
               disabled={profileSaving}
-              className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: "#2a7d6e" }}
+              className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
             >
               {profileSaving ? "Salvando..." : "Salvar"}
             </button>
@@ -237,8 +234,7 @@ export default function PerfilPage() {
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 placeholder="Senha atual"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2"
-                style={{ "--tw-ring-color": "#2a7d6e" } as React.CSSProperties}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -252,8 +248,7 @@ export default function PerfilPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2"
-                style={{ "--tw-ring-color": "#2a7d6e" } as React.CSSProperties}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -267,8 +262,7 @@ export default function PerfilPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repita a nova senha"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2"
-                style={{ "--tw-ring-color": "#2a7d6e" } as React.CSSProperties}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
 
@@ -282,8 +276,7 @@ export default function PerfilPage() {
             <button
               type="submit"
               disabled={passwordSaving}
-              className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: "#d4a853" }}
+              className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-accent"
             >
               {passwordSaving ? "Alterando..." : "Alterar senha"}
             </button>

@@ -131,7 +131,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/perfil" className="text-sm font-semibold" style={{ color: "#2a7d6e" }}>
+            <Link href="/perfil" className="text-sm font-semibold text-primary">
               Meu perfil
             </Link>
             <button
@@ -157,8 +157,7 @@ export default function DashboardPage() {
         {business && (
           <Link
             href={`/validar/${business.slug}`}
-            className="block w-full rounded-2xl py-5 text-center text-xl font-bold text-white transition-opacity hover:opacity-90 shadow-md"
-            style={{ backgroundColor: "#2a7d6e" }}
+            className="block w-full rounded-2xl py-5 text-center text-xl font-bold text-white transition-opacity hover:opacity-90 shadow-md bg-primary"
           >
             Validar uso
           </Link>
@@ -166,13 +165,12 @@ export default function DashboardPage() {
 
         <Link
           href="/planos"
-          className="block w-full rounded-2xl py-4 text-center text-lg font-bold border-2 transition-colors hover:bg-gray-50"
-          style={{ borderColor: "#2a7d6e", color: "#2a7d6e" }}
+          className="block w-full rounded-2xl py-4 text-center text-lg font-bold border-2 transition-colors hover:bg-gray-50 border-primary text-primary"
         >
           Gerenciar planos
         </Link>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatsCard label="Assinantes ativos" value={activeCount} />
           <StatsCard label="MRR" value={formatMRR(subscriptions)} />
           <StatsCard label="Adimplência" value={`${adimplencia}%`} />
