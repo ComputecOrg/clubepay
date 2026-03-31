@@ -16,22 +16,18 @@ const (
 	roleKey   contextKey = "role"
 )
 
+const authCookieName = "clubepay_token"
+
 func Auth(jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				writeErr(w, http.StatusUnauthorized, "missing authorization header")
+			tokenStr := extractToken(r)
+			if tokenStr == "" {
+				writeErr(w, http.StatusUnauthorized, "missing authorization")
 				return
 			}
 
-			parts := strings.SplitN(authHeader, " ", 2)
-			if len(parts) != 2 || parts[0] != "Bearer" {
-				writeErr(w, http.StatusUnauthorized, "invalid authorization format")
-				return
-			}
-
-			claims, err := domain.ParseJWT(parts[1], jwtSecret)
+			claims, err := domain.ParseJWT(tokenStr, jwtSecret)
 			if err != nil {
 				writeErr(w, http.StatusUnauthorized, "invalid token")
 				return
@@ -42,6 +38,23 @@ func Auth(jwtSecret string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// extractToken lê o token JWT do cookie HttpOnly primeiro, com fallback para o header Authorization.
+func extractToken(r *http.Request) string {
+	if cookie, err := r.Cookie(authCookieName); err == nil && cookie.Value != "" {
+		return cookie.Value
+	}
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return ""
+	}
+	return parts[1]
 }
 
 func RequireRole(role string) func(http.Handler) http.Handler {

@@ -23,6 +23,17 @@ describe("api.get", () => {
     );
   });
 
+  it("envia credentials include em todas as requisições", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({}),
+    });
+
+    await api.get("/api/test");
+    const callArgs = mockFetch.mock.calls[0];
+    expect(callArgs[1].credentials).toBe("include");
+  });
+
   it("sends authorization header when token provided", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -119,6 +130,17 @@ describe("api.post", () => {
     await api.post("/api/items", { name: "test" });
     const callArgs = mockFetch.mock.calls[0];
     expect(callArgs[1].headers["Content-Type"]).toBe("application/json");
+  });
+
+  it("POST envia credentials include", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({}),
+    });
+
+    await api.post("/api/items", { name: "test" });
+    const callArgs = mockFetch.mock.calls[0];
+    expect(callArgs[1].credentials).toBe("include");
   });
 });
 

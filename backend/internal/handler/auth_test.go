@@ -456,6 +456,111 @@ func TestRegisterSubscriber_InvalidJSON(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 }
 
+// ---- HttpOnly Cookie tests ----
+
+func TestLogin_SetsHttpOnlyCookie(t *testing.T) {
+	h := setupHandler(t)
+
+	// Register owner first
+	regBody := map[string]string{
+		"email":         "cookielogin@example.com",
+		"password":      "password123",
+		"name":          "Cookie Login",
+		"business_name": "Cookie Café",
+		"segment":       "cafeteria",
+	}
+	b, _ := json.Marshal(regBody)
+	regReq := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(b))
+	regReq.Header.Set("Content-Type", "application/json")
+	h.RegisterOwner(httptest.NewRecorder(), regReq)
+
+	loginBody := map[string]string{
+		"email":    "cookielogin@example.com",
+		"password": "password123",
+	}
+	lb, _ := json.Marshal(loginBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/login", bytes.NewReader(lb))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.Login(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var tokenCookie *http.Cookie
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "clubepay_token" {
+			tokenCookie = c
+			break
+		}
+	}
+	require.NotNil(t, tokenCookie, "deve definir cookie clubepay_token")
+	assert.True(t, tokenCookie.HttpOnly, "cookie deve ser HttpOnly")
+	assert.NotEmpty(t, tokenCookie.Value)
+	assert.Equal(t, "/", tokenCookie.Path)
+	assert.Greater(t, tokenCookie.MaxAge, 0)
+}
+
+func TestRegisterOwner_SetsHttpOnlyCookie(t *testing.T) {
+	h := setupHandler(t)
+
+	body := map[string]string{
+		"email":         "cookiereg@example.com",
+		"password":      "password123",
+		"name":          "Cookie Reg",
+		"business_name": "Cookie Reg Café",
+		"segment":       "cafeteria",
+	}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.RegisterOwner(rr, req)
+
+	require.Equal(t, http.StatusCreated, rr.Code)
+
+	var tokenCookie *http.Cookie
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "clubepay_token" {
+			tokenCookie = c
+			break
+		}
+	}
+	require.NotNil(t, tokenCookie, "deve definir cookie clubepay_token")
+	assert.True(t, tokenCookie.HttpOnly, "cookie deve ser HttpOnly")
+	assert.NotEmpty(t, tokenCookie.Value)
+}
+
+func TestRegisterSubscriber_SetsHttpOnlyCookie(t *testing.T) {
+	h := setupHandler(t)
+
+	body := map[string]string{
+		"email":    "cookiesub@example.com",
+		"password": "password123",
+		"name":     "Cookie Sub",
+	}
+	b, _ := json.Marshal(body)
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register-subscriber", bytes.NewReader(b))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+
+	h.RegisterSubscriber(rr, req)
+
+	require.Equal(t, http.StatusCreated, rr.Code)
+
+	var tokenCookie *http.Cookie
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "clubepay_token" {
+			tokenCookie = c
+			break
+		}
+	}
+	require.NotNil(t, tokenCookie, "deve definir cookie clubepay_token")
+	assert.True(t, tokenCookie.HttpOnly, "cookie deve ser HttpOnly")
+	assert.NotEmpty(t, tokenCookie.Value)
+}
+
 func TestRegisterSubscriber_MissingFields(t *testing.T) {
 	h := setupHandler(t)
 
