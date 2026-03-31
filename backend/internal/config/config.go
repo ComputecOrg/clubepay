@@ -43,7 +43,7 @@ func Load() (*Config, error) {
 		CORSOrigins:        getEnv("CORS_ORIGINS", "*"),
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
 		MonthlyBudgetCents: parseInt64Env("MONTHLY_BUDGET_CENTS", 500000),
-		SpendingAlertEmail: getEnv("SPENDING_ALERT_EMAIL", "ceo@clubepay.com"),
+		SpendingAlertEmail: os.Getenv("SPENDING_ALERT_EMAIL"),
 		WarnThresholdPct:   parseIntEnv("WARN_THRESHOLD_PCT", 80),
 		CriticalThresholdPct: parseIntEnv("CRITICAL_THRESHOLD_PCT", 95),
 	}
@@ -53,6 +53,18 @@ func Load() (*Config, error) {
 	}
 	if cfg.JWTSecret == "" {
 		return nil, fmt.Errorf("JWT_SECRET is required")
+	}
+	if cfg.SpendingAlertEmail == "" {
+		return nil, fmt.Errorf("SPENDING_ALERT_EMAIL is required")
+	}
+	if cfg.WarnThresholdPct < 0 || cfg.WarnThresholdPct > 100 {
+		return nil, fmt.Errorf("WARN_THRESHOLD_PCT must be between 0 and 100, got %d", cfg.WarnThresholdPct)
+	}
+	if cfg.CriticalThresholdPct < 0 || cfg.CriticalThresholdPct > 100 {
+		return nil, fmt.Errorf("CRITICAL_THRESHOLD_PCT must be between 0 and 100, got %d", cfg.CriticalThresholdPct)
+	}
+	if cfg.WarnThresholdPct >= cfg.CriticalThresholdPct {
+		return nil, fmt.Errorf("WARN_THRESHOLD_PCT (%d) must be less than CRITICAL_THRESHOLD_PCT (%d)", cfg.WarnThresholdPct, cfg.CriticalThresholdPct)
 	}
 
 	return cfg, nil
