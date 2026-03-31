@@ -18,6 +18,7 @@ import (
 	"github.com/clubepay/backend/internal/config"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
+	"github.com/clubepay/backend/internal/provider"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
 )
@@ -79,8 +80,18 @@ func main() {
 		slog.Warn("SMTP not configured, using mock email sender")
 	}
 
+	// Create cost providers for infrastructure cost tracking
+	costProviders := []provider.CostProvider{
+		provider.NewHostingerProvider(cfg),
+		provider.NewClaudeAPIProvider(cfg),
+		provider.NewBrevoProvider(cfg),
+	}
+	costAggregator := provider.NewAggregator(costProviders)
+	slog.Info("initialized cost aggregator with 3 providers")
+
 	// Wire handler
 	h := handler.New(queries, cfg, pspClient, emailSender)
+	h.CostAggregator = costAggregator
 
 	// Setup router
 	router := setupRouter(cfg, pool, h)

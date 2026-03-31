@@ -14,6 +14,7 @@ import (
 	"github.com/clubepay/backend/internal/config"
 	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
+	"github.com/clubepay/backend/internal/provider"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
 	"github.com/clubepay/backend/internal/service"
@@ -28,9 +29,10 @@ type Handler struct {
 	Referrals     *service.ReferralService
 	Config        *config.Config
 	// Keep these for webhook, cron, public, and search handlers that need direct access
-	Queries *repository.Queries
-	PSP     psp.PSP
-	Email   email.Sender
+	Queries         *repository.Queries
+	PSP             psp.PSP
+	Email           email.Sender
+	CostAggregator  *provider.Aggregator
 }
 
 func New(q *repository.Queries, cfg *config.Config, p psp.PSP, e email.Sender) *Handler {
@@ -86,6 +88,14 @@ func handleServiceError(w http.ResponseWriter, err error) {
 	}
 	slog.Error("unhandled service error", "error", err)
 	writeError(w, http.StatusInternalServerError, "erro interno")
+}
+
+// CalculateTotalInfrastructureCost calculates total infrastructure costs from all providers
+func (h *Handler) CalculateTotalInfrastructureCost(ctx context.Context) (int64, error) {
+	if h.CostAggregator == nil {
+		return 0, nil
+	}
+	return h.CostAggregator.GetTotalMonthlyCost(ctx)
 }
 
 // SendSpendingAlerts checks all businesses and sends alerts if thresholds are reached

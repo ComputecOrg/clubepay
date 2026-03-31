@@ -15,6 +15,7 @@ import (
 	"github.com/clubepay/backend/internal/config"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/handler"
+	"github.com/clubepay/backend/internal/provider"
 	"github.com/clubepay/backend/internal/psp"
 	"github.com/clubepay/backend/internal/repository"
 	"github.com/clubepay/backend/internal/testutil"
@@ -218,4 +219,81 @@ func TestReconcile_InvalidSecret(t *testing.T) {
 	h.Reconcile(rr, req)
 
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+// MockCostProvider for testing
+type mockCostProvider struct {
+	cost int64
+}
+
+func (m *mockCostProvider) GetMonthlyCost(ctx context.Context) (provider.Cost, error) {
+	return provider.Cost{
+		CostCents:   m.cost,
+		Provider:    "mock",
+		Description: "Mock provider",
+	}, nil
+}
+
+func TestReconcile_UpdatesCosts(t *testing.T) {
+	pool := testutil.SetupTestDB(t)
+	queries := repository.New(pool)
+	cfg := &config.Config{
+		JWTSecret:  "test-secret-key",
+		CronSecret: "test-cron-secret",
+	}
+	mockPSP := &psp.MockPSP{}
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
+
+	// Setup cost providers (total: 28495 cents = Hostinger + Claude + Brevo)
+	providers := []provider.CostProvider{
+		&mockCostProvider{cost: 10000}, // Hostinger
+		&mockCostProvider{cost: 12495}, // Claude API
+		&mockCostProvider{cost: 6000},  // Brevo
+	}
+	agg := provider.NewAggregator(providers)
+	h.CostAggregator = agg
+
+	// Seed owner, business, plan, subscriber
+	owner := testutil.SeedOwner(t, queries, "costowner@test.com", "Cost Owner")
+	biz := testutil.SeedBusiness(t, queries, owner.ID, "Cost Cafe", "cost-cafe")
+	plan := testutil.SeedPlan(t, queries, biz.ID, "Cost Plan", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, queries, "costsub@test.com", "Cost Sub", "11999990010")
+
+	// Create subscription
+	sub, err := queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan.ID,
+		SubscriberID:      subscriber.ID,
+		BusinessID:        biz.ID,
+		PspSubscriptionID: pgtype.Text{String: "sub_cost_123", Valid: true},
+		Status:            "active",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+	_ = sub // Prevent unused variable warning
+
+	// Run reconcile
+	req := httptest.NewRequest(http.MethodPost, "/api/cron/reconcile", nil)
+	req.Header.Set("X-Cron-Secret", "test-cron-secret")
+	rr := httptest.NewRecorder()
+
+	h.Reconcile(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var resp map[string]interface{}
+	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
+
+	// Verify monthly cost was updated
+	currentMonth := time.Now()
+	pgDate := pgtype.Date{
+		Time:  currentMonth,
+		Valid: true,
+	}
+	cost, err := queries.GetOrCreateMonthlyCost(context.Background(), repository.GetOrCreateMonthlyCostParams{
+		BusinessID: biz.ID,
+		Month:      pgDate,
+	})
+	require.NoError(t, err)
+	assert.Equal(t, int64(28495), cost.InfrastructureCostCents)
 }

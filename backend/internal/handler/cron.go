@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
 	"github.com/clubepay/backend/internal/repository"
 )
@@ -94,6 +95,42 @@ func (h *Handler) Reconcile(w http.ResponseWriter, r *http.Request) {
 	if err := h.SendSpendingAlerts(ctx); err != nil {
 		slog.Error("reconcile: failed to send spending alerts", "error", err)
 		// Don't fail the whole reconcile, just log the error
+	}
+
+	// 4. Update infrastructure costs
+	totalInfraCost, err := h.CalculateTotalInfrastructureCost(ctx)
+	if err != nil {
+		slog.Error("reconcile: failed to calculate infrastructure costs", "error", err)
+		// Non-blocking: don't fail reconcile if costs can't be calculated
+	} else if totalInfraCost > 0 {
+		// Get current month and update costs
+		currentMonth := domain.GetCurrentMonth()
+
+		businesses, err := h.Queries.ListAllBusinesses(ctx)
+		if err != nil {
+			slog.Error("reconcile: failed to list businesses for cost update", "error", err)
+		} else {
+			for _, business := range businesses {
+				// Get or create monthly cost for this business
+				monthlyCost, err := h.Queries.GetOrCreateMonthlyCost(ctx, repository.GetOrCreateMonthlyCostParams{
+					BusinessID: business.ID,
+					Month:      pgTypeDate(currentMonth),
+				})
+				if err != nil {
+					slog.Error("reconcile: failed to get or create monthly cost", "business_id", business.ID, "error", err)
+					continue
+				}
+
+				// Update infrastructure costs
+				err = h.Queries.UpdateMonthlyCostInfrastructure(ctx, repository.UpdateMonthlyCostInfrastructureParams{
+					ID:                      monthlyCost.ID,
+					InfrastructureCostCents: totalInfraCost,
+				})
+				if err != nil {
+					slog.Error("reconcile: failed to update infrastructure costs", "business_id", business.ID, "error", err)
+				}
+			}
+		}
 	}
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
