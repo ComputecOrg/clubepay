@@ -1,15 +1,15 @@
 ---
-title: "ClubePay vs maquininha tradicional: comparativo de taxas para padaria e cafeteria"
+title: "AssinaPix vs maquininha tradicional: comparativo de taxas para padaria e cafeteria"
 date: "2026-04-10"
-author: "Equipe ClubePay"
-excerpt: "Compare as taxas reais entre maquininha tradicional e o modelo de assinatura com Pix recorrente do ClubePay. Descubra qual opção é mais barata para sua padaria ou cafeteria."
+author: "Equipe AssinaPix"
+excerpt: "Compare as taxas reais entre maquininha tradicional e o modelo de assinatura com Pix recorrente do AssinaPix. Descubra qual opção é mais barata para sua padaria ou cafeteria."
 readingTime: "7 min de leitura"
 tags: ["maquininha", "comparativo", "taxas", "pix recorrente", "clube assinatura"]
 ---
 
 Quanto você paga de taxa por mês na sua maquininha? Se você é dono de padaria ou cafeteria e nunca fez esse cálculo com cuidado, a resposta pode te surpreender — geralmente, para o lado negativo.
 
-Neste artigo, fazemos um **comparativo completo entre maquininha tradicional e o ClubePay** — uma ferramenta que permite criar clubes de assinatura com Pix recorrente, eliminando as taxas por transação para seus clientes fiéis.
+Neste artigo, fazemos um **comparativo completo entre maquininha tradicional e o AssinaPix** — uma ferramenta que permite criar clubes de assinatura com Pix recorrente, eliminando as taxas por transação para seus clientes fiéis.
 
 ---
 
@@ -44,15 +44,15 @@ Considere uma padaria com as seguintes características:
 
 ---
 
-## Como funciona o ClubePay
+## Como funciona o AssinaPix
 
-O ClubePay é uma ferramenta para padarias, cafeterias e pequenos negócios criarem **clubes de assinatura** com cobrança via **Pix recorrente**.
+O AssinaPix é uma ferramenta para padarias, cafeterias e pequenos negócios criarem **clubes de assinatura** com cobrança via **Pix recorrente**.
 
 Em vez de cobrar R$ 7 a cada café, você cobra **R$ 59 por mês** pelo "Clube do Café" — e o assinante tem direito a um café por dia durante o mês. A cobrança é feita automaticamente via Pix, sem necessidade de maquininha.
 
 ### Como funciona na prática:
 
-1. **Você cria seu clube** em menos de 5 minutos no ClubePay
+1. **Você cria seu clube** em menos de 5 minutos no AssinaPix
 2. **Define o plano:** nome, preço, benefício (ex: "1 café/dia") e limite de uso
 3. **Compartilha o link** com seus clientes (WhatsApp, Instagram, QR Code no balcão)
 4. **Clientes se cadastram** e pagam a primeira mensalidade via Pix
@@ -65,7 +65,7 @@ Em vez de cobrar R$ 7 a cada café, você cobra **R$ 59 por mês** pelo "Clube d
 
 ### Cenário A — Cliente que toma café 22 vezes no mês
 
-| | Maquininha tradicional | ClubePay (assinatura) |
+| | Maquininha tradicional | AssinaPix (assinatura) |
 |---|---|---|
 | Receita bruta | 22 × R$ 7 = R$ 154 | R$ 79/mês (plano fixo) |
 | Taxa/custo | R$ 154 × 2% = **R$ 3,08** | **R$ 0** (Pix não tem taxa) |
@@ -77,7 +77,7 @@ Em vez de cobrar R$ 7 a cada café, você cobra **R$ 59 por mês** pelo "Clube d
 
 ### Cenário B — 30 clientes fiéis na padaria
 
-| | Maquininha (só clientes fiéis) | ClubePay (30 assinantes) |
+| | Maquininha (só clientes fiéis) | AssinaPix (30 assinantes) |
 |---|---|---|
 | Transações/mês | ~600 transações | 30 cobranças Pix |
 | Receita bruta | R$ 4.200 (variável) | R$ 2.370 (R$ 79 × 30) |
@@ -106,7 +106,7 @@ O modelo de assinatura tem receita menor por cliente, mas **muito mais previsív
 - Sem fidelização automática
 - Prazo de recebimento: D+1 a D+30
 
-### ClubePay (Assinatura + Pix Recorrente)
+### AssinaPix (Assinatura + Pix Recorrente)
 
 **Vantagens:**
 - Zero taxa por transação
@@ -127,7 +127,7 @@ O modelo de assinatura tem receita menor por cliente, mas **muito mais previsív
 
 A resposta é: **os dois, de forma complementar**.
 
-A maquininha continua sendo necessária para clientes novos e esporádicos. Mas para os seus **20 a 50 clientes mais fiéis** — aqueles que vêm todo dia ou toda semana — o modelo de assinatura do ClubePay é muito mais inteligente.
+A maquininha continua sendo necessária para clientes novos e esporádicos. Mas para os seus **20 a 50 clientes mais fiéis** — aqueles que vêm todo dia ou toda semana — o modelo de assinatura do AssinaPix é muito mais inteligente.
 
 **Estratégia sugerida:**
 1. Mantenha a maquininha para transações pontuais
@@ -150,14 +150,14 @@ Não é uma economia gigante em taxas absolutas, mas o valor real está na **rec
 
 ## Conclusão
 
-A maquininha tradicional é um custo necessário para transações pontuais. Mas para os seus clientes mais fiéis, o ClubePay oferece uma alternativa sem taxa de transação, com receita previsível e fidelização real.
+A maquininha tradicional é um custo necessário para transações pontuais. Mas para os seus clientes mais fiéis, o AssinaPix oferece uma alternativa sem taxa de transação, com receita previsível e fidelização real.
 
-Se você quer começar a transformar clientes frequentes em assinantes — e parar de pagar taxa em cada cafezinho vendido para quem já é seu cliente fiel —, o ClubePay é o próximo passo.
+Se você quer começar a transformar clientes frequentes em assinantes — e parar de pagar taxa em cada cafezinho vendido para quem já é seu cliente fiel —, o AssinaPix é o próximo passo.
 
 ---
 
 **Crie seu clube de assinatura agora e teste gratuitamente com até 15 assinantes.**
 
-[Começar no ClubePay — É grátis →](/)
+[Começar no AssinaPix — É grátis →](/)
 
 *Sem cartão de crédito. Sem contrato. Cancele quando quiser.*

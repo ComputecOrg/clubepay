@@ -12,16 +12,16 @@ beforeEach(() => {
 describe("auth - segurança HttpOnly cookie", () => {
   it("setToken NÃO armazena token no localStorage", () => {
     setToken("abc123");
-    expect(localStorage.getItem("clubepay_token")).toBeNull();
+    expect(localStorage.getItem("assinapix_token")).toBeNull();
   });
 
   it("setToken define cookie de sessão para o browser gerenciar", () => {
     setToken("abc123");
-    expect(document.cookie).toContain("clubepay_session=abc123");
+    expect(document.cookie).toContain("assinapix_session=abc123");
   });
 
   it("getToken lê do cookie de sessão (não do localStorage)", () => {
-    document.cookie = "clubepay_session=xyz789; path=/";
+    document.cookie = "assinapix_session=xyz789; path=/";
     expect(getToken()).toBe("xyz789");
   });
 
@@ -37,10 +37,10 @@ describe("auth - segurança HttpOnly cookie", () => {
 
   it("clearToken NÃO usa localStorage", () => {
     // Garantir que clearToken não interage com localStorage
-    localStorage.setItem("clubepay_token", "manual");
+    localStorage.setItem("assinapix_token", "manual");
     clearToken();
     // localStorage deve permanecer inalterado (clearToken não deve mexer nele)
-    expect(localStorage.getItem("clubepay_token")).toBe("manual");
+    expect(localStorage.getItem("assinapix_token")).toBe("manual");
   });
 
   it("setToken sobrescreve sessão existente", () => {

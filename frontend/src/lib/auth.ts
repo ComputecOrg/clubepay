@@ -1,8 +1,8 @@
-const SESSION_COOKIE = "clubepay_session";
+const SESSION_COOKIE = "assinapix_session";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)clubepay_session=([^;]+)/);
+  const match = document.cookie.match(/(?:^|;\s*)assinapix_session=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 

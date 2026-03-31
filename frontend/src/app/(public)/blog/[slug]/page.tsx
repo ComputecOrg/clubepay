@@ -19,11 +19,11 @@ export async function generateMetadata({
   const post = await getBlogPost(params.slug);
   if (!post) {
     return {
-      title: 'Artigo não encontrado | ClubePay',
+      title: 'Artigo não encontrado | AssinaPix',
     };
   }
   return {
-    title: `${post.frontmatter.title} | ClubePay`,
+    title: `${post.frontmatter.title} | AssinaPix`,
     description: post.frontmatter.excerpt || post.content.substring(0, 160),
     openGraph: {
       title: post.frontmatter.title,

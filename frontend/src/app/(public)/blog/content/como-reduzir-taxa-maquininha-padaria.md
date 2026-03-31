@@ -1,7 +1,7 @@
 ---
 title: "Como reduzir a taxa da maquininha na sua padaria"
 date: "2026-04-03"
-author: "Equipe ClubePay"
+author: "Equipe AssinaPix"
 excerpt: "Descubra estratégias práticas para cortar os custos com maquininha na sua padaria e aumentar a margem de lucro sem complicação."
 readingTime: "6 min de leitura"
 tags: ["maquininha", "padaria", "taxas", "gestão financeira"]
@@ -65,7 +65,7 @@ Esta é a estratégia mais inteligente para padarias: transformar clientes frequ
 
 Imagine que você tem 30 clientes que vêm todos os dias tomar café da manhã. Com um clube, eles pagam R$ 79/mês por "café ilimitado de segunda a sexta". Você recebe R$ 2.370 garantidos todo mês via Pix, sem pagar taxa de maquininha por cada visita.
 
-É exatamente isso que o **ClubePay** oferece: uma ferramenta simples para que qualquer padaria ou cafeteria crie seu clube de assinatura em menos de 5 minutos.
+É exatamente isso que o **AssinaPix** oferece: uma ferramenta simples para que qualquer padaria ou cafeteria crie seu clube de assinatura em menos de 5 minutos.
 
 **Como funciona:**
 1. Você cadastra seu negócio e cria um plano (ex: "Café do Mês — R$ 79")
@@ -79,7 +79,7 @@ Sem maquininha, sem taxa por transação, sem burocracia.
 
 ## Comparativo: maquininha vs. clube de assinatura
 
-| Cenário | Maquininha tradicional | Clube de assinatura (ClubePay) |
+| Cenário | Maquininha tradicional | Clube de assinatura (AssinaPix) |
 |---------|------------------------|-------------------------------|
 | 100 cafés/mês (R$ 7 cada) | R$ 700 recebidos − R$ 14 a R$ 25 em taxas | R$ 59/mês por assinante (previsível) |
 | Previsibilidade de receita | Variável | Fixa e recorrente |
@@ -106,12 +106,12 @@ Para reduzir a taxa da maquininha na sua padaria:
 4. Evite parcelamentos sem necessidade
 5. **Crie um clube de assinatura para seus clientes mais fiéis**
 
-O ClubePay resolve o ponto 5 de forma simples e rápida. Você cria seu clube em 5 minutos, seus clientes pagam pelo Pix e você recebe todo mês sem se preocupar com taxas de maquininha.
+O AssinaPix resolve o ponto 5 de forma simples e rápida. Você cria seu clube em 5 minutos, seus clientes pagam pelo Pix e você recebe todo mês sem se preocupar com taxas de maquininha.
 
 ---
 
 **Pronto para economizar nas taxas e fidelizar seus clientes?**
 
-[Crie seu clube de assinatura gratuitamente no ClubePay →](/)
+[Crie seu clube de assinatura gratuitamente no AssinaPix →](/)
 
 *Até 15 assinantes sem custo. Sem cartão de crédito necessário.*

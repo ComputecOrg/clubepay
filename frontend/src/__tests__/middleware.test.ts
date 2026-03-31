@@ -6,7 +6,7 @@ function createRequest(path: string, cookieToken?: string): NextRequest {
   const url = new URL(path, "http://localhost:3000");
   const req = new NextRequest(url);
   if (cookieToken) {
-    req.cookies.set("clubepay_token", cookieToken);
+    req.cookies.set("assinapix_token", cookieToken);
   }
   return req;
 }

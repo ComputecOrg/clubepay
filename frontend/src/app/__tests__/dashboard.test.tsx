@@ -95,7 +95,7 @@ describe("DashboardPage", () => {
       expect(screen.getByText("Cafe Central")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("clubepay.com/cafe-central")).toBeInTheDocument();
+    expect(screen.getByText("assinapix.com.br/cafe-central")).toBeInTheDocument();
 
     // Subscriber appears in the list
     expect(screen.getByText("João")).toBeInTheDocument();

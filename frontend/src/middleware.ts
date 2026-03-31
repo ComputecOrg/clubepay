@@ -5,7 +5,7 @@ const protectedPaths = ["/dashboard", "/planos", "/perfil", "/meu-plano"];
 const authPaths = ["/login", "/register"];
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("clubepay_token")?.value;
+  const token = request.cookies.get("assinapix_token")?.value;
   const { pathname } = request.nextUrl;
 
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));

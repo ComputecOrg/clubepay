@@ -17,7 +17,7 @@ export default function BusinessQRCode({ slug }: QRCodeProps) {
     if (!printWindow) return;
     printWindow.document.write(`
       <html>
-        <head><title>QR Code - ClubePay</title></head>
+        <head><title>QR Code - AssinaPix</title></head>
         <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui">
           <h2 style="color:var(--color-primary)">Escaneie para validar seu uso</h2>
           <div id="qr"></div>

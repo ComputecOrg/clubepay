@@ -1,7 +1,7 @@
 ---
 title: "Checklist: tudo que dono de cafeteria precisa controlar nos pagamentos"
 date: "2026-04-24"
-author: "Equipe ClubePay"
+author: "Equipe AssinaPix"
 excerpt: "Um guia prático com tudo que você precisa acompanhar nos pagamentos da sua cafeteria ou padaria para não perder dinheiro sem perceber."
 readingTime: "7 min de leitura"
 tags: ["gestão financeira", "cafeteria", "pagamentos", "controle financeiro", "padaria"]
@@ -140,7 +140,7 @@ Se você chegou até aqui, provavelmente identificou pelo menos um ponto onde es
 
 A solução mais eficiente para os dois problemas ao mesmo tempo é o modelo de clube de assinatura: seus clientes mais fiéis pagam uma mensalidade via Pix, você recebe de forma previsível, sem taxa de maquininha, e ainda fideliza quem já gosta do seu negócio.
 
-O **ClubePay** foi criado exatamente para isso: permitir que qualquer cafeteria ou padaria crie seu clube de assinatura em minutos, sem precisar contratar tecnologia cara ou mudar completamente sua operação.
+O **AssinaPix** foi criado exatamente para isso: permitir que qualquer cafeteria ou padaria crie seu clube de assinatura em minutos, sem precisar contratar tecnologia cara ou mudar completamente sua operação.
 
 ---
 
@@ -160,6 +160,6 @@ Salve este checklist e revise ele uma vez por mês. Em 3 meses, você vai notar 
 
 **Pronto para transformar seus clientes frequentes em assinantes?**
 
-[Crie seu clube de assinatura gratuitamente no ClubePay →](/)
+[Crie seu clube de assinatura gratuitamente no AssinaPix →](/)
 
 *Até 15 assinantes sem custo. Sem cartão de crédito necessário. Você cria em 5 minutos.*
