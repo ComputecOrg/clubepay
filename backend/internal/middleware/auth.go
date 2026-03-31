@@ -17,7 +17,7 @@ const (
 )
 
 // AuthCookieName é o nome do cookie HttpOnly que armazena o JWT de autenticação.
-const AuthCookieName = "clubepay_token"
+const AuthCookieName = "assinapix_token"
 
 func Auth(jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

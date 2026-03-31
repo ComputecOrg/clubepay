@@ -134,7 +134,7 @@ func TestAuthMiddleware_ValidCookieToken(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("GET", "/", nil)
-	req.AddCookie(&http.Cookie{Name: "clubepay_token", Value: token})
+	req.AddCookie(&http.Cookie{Name: "assinapix_token", Value: token})
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code)
@@ -146,7 +146,7 @@ func TestAuthMiddleware_InvalidCookieToken(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("GET", "/", nil)
-	req.AddCookie(&http.Cookie{Name: "clubepay_token", Value: "invalid-token"})
+	req.AddCookie(&http.Cookie{Name: "assinapix_token", Value: "invalid-token"})
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
@@ -163,7 +163,7 @@ func TestAuthMiddleware_CookieTakesPriorityOverInvalidHeader(t *testing.T) {
 	}))
 
 	req := httptest.NewRequest("GET", "/", nil)
-	req.AddCookie(&http.Cookie{Name: "clubepay_token", Value: token})
+	req.AddCookie(&http.Cookie{Name: "assinapix_token", Value: token})
 	// Even with no Authorization header, cookie should work
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)

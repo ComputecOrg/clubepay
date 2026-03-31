@@ -11,7 +11,7 @@ func dummyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestCORS_AllowedOrigin(t *testing.T) {
-	allowedOrigin := "https://app.clubepay.com"
+	allowedOrigin := "https://app.assinapix.com.br"
 	handler := CORS(allowedOrigin)(http.HandlerFunc(dummyHandler))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -29,7 +29,7 @@ func TestCORS_AllowedOrigin(t *testing.T) {
 }
 
 func TestCORS_DisallowedOrigin(t *testing.T) {
-	allowedOrigin := "https://app.clubepay.com"
+	allowedOrigin := "https://app.assinapix.com.br"
 	handler := CORS(allowedOrigin)(http.HandlerFunc(dummyHandler))
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -44,7 +44,7 @@ func TestCORS_DisallowedOrigin(t *testing.T) {
 }
 
 func TestCORS_Preflight(t *testing.T) {
-	allowedOrigin := "https://app.clubepay.com"
+	allowedOrigin := "https://app.assinapix.com.br"
 	handler := CORS(allowedOrigin)(http.HandlerFunc(dummyHandler))
 
 	req := httptest.NewRequest(http.MethodOptions, "/", nil)
@@ -85,10 +85,10 @@ func TestCORS_WildcardForDev(t *testing.T) {
 }
 
 func TestCORS_MultipleAllowedOrigins(t *testing.T) {
-	allowedOrigins := "https://app.clubepay.com,https://staging.clubepay.com"
+	allowedOrigins := "https://app.assinapix.com.br,https://staging.assinapix.com.br"
 	handler := CORS(allowedOrigins)(http.HandlerFunc(dummyHandler))
 
-	for _, origin := range []string{"https://app.clubepay.com", "https://staging.clubepay.com"} {
+	for _, origin := range []string{"https://app.assinapix.com.br", "https://staging.assinapix.com.br"} {
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		req.Header.Set("Origin", origin)
 		rr := httptest.NewRecorder()

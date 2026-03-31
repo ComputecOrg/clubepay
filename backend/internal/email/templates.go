@@ -13,7 +13,7 @@ const htmlWrapper = `<html><body style="font-family:system-ui,sans-serif;color:#
 </body></html>`
 
 func WelcomeEmail(name, planName, businessName string) (string, string) {
-	subject := "Bem-vindo ao ClubePay!"
+	subject := "Bem-vindo ao AssinaPix!"
 	content := fmt.Sprintf(`<h2>Ola %s!</h2>
 <p>Sua assinatura do plano <strong>%s</strong> no <strong>%s</strong> foi criada com sucesso.</p>
 <p>Agora voce pode aproveitar todos os beneficios do seu plano.</p>
@@ -22,7 +22,7 @@ func WelcomeEmail(name, planName, businessName string) (string, string) {
 }
 
 func PaymentConfirmedEmail(name, planName, amount string) (string, string) {
-	subject := "Pagamento confirmado - ClubePay"
+	subject := "Pagamento confirmado - AssinaPix"
 	content := fmt.Sprintf(`<h2>Pagamento confirmado!</h2>
 <p>Ola %s, seu pagamento de <strong>%s</strong> para o plano <strong>%s</strong> foi confirmado.</p>
 <p>Sua assinatura continua ativa. Aproveite!</p>`, name, amount, planName)
@@ -30,7 +30,7 @@ func PaymentConfirmedEmail(name, planName, amount string) (string, string) {
 }
 
 func SubscriptionCancelledEmail(name, planName, validUntil string) (string, string) {
-	subject := "Assinatura cancelada - ClubePay"
+	subject := "Assinatura cancelada - AssinaPix"
 	content := fmt.Sprintf(`<h2>Assinatura cancelada</h2>
 <p>Ola %s, sua assinatura do plano <strong>%s</strong> foi cancelada.</p>
 <p>Voce ainda pode usar o servico ate <strong>%s</strong>.</p>
@@ -39,7 +39,7 @@ func SubscriptionCancelledEmail(name, planName, validUntil string) (string, stri
 }
 
 func PasswordResetEmail(name, resetURL string) (string, string) {
-	subject := "Redefinir senha - ClubePay"
+	subject := "Redefinir senha - AssinaPix"
 	content := fmt.Sprintf(`<h2>Redefinir senha</h2>
 <p>Ola %s, recebemos um pedido para redefinir sua senha.</p>
 <p><a href="%s" style="display:inline-block;background:#2a7d6e;color:white;padding:12px 24px;text-decoration:none;border-radius:6px">Redefinir minha senha</a></p>
@@ -48,10 +48,10 @@ func PasswordResetEmail(name, resetURL string) (string, string) {
 }
 
 func GraceBlockedEmail(name string) (string, string) {
-	subject := "ClubePay - Assinatura bloqueada"
+	subject := "AssinaPix - Assinatura bloqueada"
 	content := fmt.Sprintf(`<h2>Assinatura bloqueada</h2>
 <p>Ola %s, sua assinatura foi bloqueada por falta de pagamento.</p>
 <p>Por favor, regularize seu pagamento para continuar usando o servico.</p>
-<p>Equipe ClubePay</p>`, name)
+<p>Equipe AssinaPix</p>`, name)
 	return subject, fmt.Sprintf(htmlWrapper, content)
 }

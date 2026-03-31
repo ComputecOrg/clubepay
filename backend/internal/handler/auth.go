@@ -6,7 +6,7 @@ import (
 	"github.com/clubepay/backend/internal/domain"
 )
 
-const jwtCookieName = "clubepay_token"
+const jwtCookieName = "assinapix_token"
 const jwtCookieMaxAge = 86400 // 24 horas
 
 // setAuthCookie define o cookie HttpOnly com o JWT de autenticação.
