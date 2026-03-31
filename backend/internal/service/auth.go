@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/clubepay/backend/internal/analytics"
 	"github.com/clubepay/backend/internal/config"
 	"github.com/clubepay/backend/internal/domain"
 	"github.com/clubepay/backend/internal/email"
@@ -20,14 +22,20 @@ import (
 
 // AuthService handles authentication and profile business logic.
 type AuthService struct {
-	Queries *repository.Queries
-	Config  *config.Config
-	Email   email.Sender
+	Queries   *repository.Queries
+	Config    *config.Config
+	Email     email.Sender
+	Analytics analytics.EventTracker // Optional analytics tracker
 }
 
 // NewAuthService creates a new AuthService.
 func NewAuthService(q *repository.Queries, cfg *config.Config, e email.Sender) *AuthService {
-	return &AuthService{Queries: q, Config: cfg, Email: e}
+	return &AuthService{Queries: q, Config: cfg, Email: e, Analytics: nil}
+}
+
+// NewAuthServiceWithAnalytics creates a new AuthService with analytics tracking.
+func NewAuthServiceWithAnalytics(q *repository.Queries, cfg *config.Config, e email.Sender, tracker analytics.EventTracker) *AuthService {
+	return &AuthService{Queries: q, Config: cfg, Email: e, Analytics: tracker}
 }
 
 // AuthResponse is returned by register/login methods (re-exported from domain).
@@ -70,6 +78,12 @@ func (s *AuthService) RegisterOwner(ctx context.Context, input domain.RegisterOw
 	})
 	if err != nil {
 		return nil, domain.NewErrInternal("erro ao criar negócio", err)
+	}
+
+	// Track analytics event if tracker is configured
+	if s.Analytics != nil {
+		userIDStr := formatUserID(user.ID)
+		_ = s.Analytics.TrackBusinessCreated(userIDStr, input.BusinessName, input.Segment, "")
 	}
 
 	token, err := domain.GenerateJWT(user.ID, domain.RoleOwner, s.Config.JWTSecret, domain.OwnerJWTExpiry)
@@ -347,3 +361,7 @@ func isDuplicateKeyError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "duplicate key")
 }
 
+// formatUserID converts a user ID to a string for analytics tracking.
+func formatUserID(id int64) string {
+	return fmt.Sprintf("%d", id)
+}
