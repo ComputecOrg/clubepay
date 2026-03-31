@@ -35,6 +35,11 @@ func TestLoad_Defaults(t *testing.T) {
 	t.Setenv("SMTP_PORT", "")
 	t.Setenv("CORS_ORIGINS", "")
 	t.Setenv("FRONTEND_URL", "")
+	t.Setenv("SMTP_HOST", "")
+	t.Setenv("MONTHLY_BUDGET_CENTS", "")
+	t.Setenv("SPENDING_ALERT_EMAIL", "")
+	t.Setenv("WARN_THRESHOLD_PCT", "")
+	t.Setenv("CRITICAL_THRESHOLD_PCT", "")
 
 	cfg, err := config.Load()
 	require.NoError(t, err)
@@ -43,6 +48,11 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "587", cfg.SMTPPort)
 	assert.Equal(t, "*", cfg.CORSOrigins)
 	assert.Equal(t, "http://localhost:3000", cfg.FrontendURL)
+	assert.Equal(t, "localhost", cfg.SMTPHost)
+	assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents)
+	assert.Equal(t, "ceo@clubepay.com", cfg.SpendingAlertEmail)
+	assert.Equal(t, 80, cfg.WarnThresholdPct)
+	assert.Equal(t, 95, cfg.CriticalThresholdPct)
 }
 
 func TestLoad_AllVars(t *testing.T) {
@@ -59,6 +69,10 @@ func TestLoad_AllVars(t *testing.T) {
 	t.Setenv("SMTP_PASSWORD", "pass")
 	t.Setenv("CORS_ORIGINS", "https://example.com")
 	t.Setenv("FRONTEND_URL", "https://app.example.com")
+	t.Setenv("MONTHLY_BUDGET_CENTS", "1000000")
+	t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+	t.Setenv("WARN_THRESHOLD_PCT", "75")
+	t.Setenv("CRITICAL_THRESHOLD_PCT", "90")
 
 	cfg, err := config.Load()
 	require.NoError(t, err)
@@ -69,4 +83,97 @@ func TestLoad_AllVars(t *testing.T) {
 	assert.Equal(t, "465", cfg.SMTPPort)
 	assert.Equal(t, "https://example.com", cfg.CORSOrigins)
 	assert.Equal(t, "https://app.example.com", cfg.FrontendURL)
+	assert.Equal(t, int64(1000000), cfg.MonthlyBudgetCents)
+	assert.Equal(t, "alerts@example.com", cfg.SpendingAlertEmail)
+	assert.Equal(t, 75, cfg.WarnThresholdPct)
+	assert.Equal(t, 90, cfg.CriticalThresholdPct)
+}
+
+func TestParseIntEnv(t *testing.T) {
+	t.Run("with valid value", func(t *testing.T) {
+		t.Setenv("WARN_THRESHOLD_PCT", "75")
+		// Call Load to test parseIntEnv indirectly
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("MONTHLY_BUDGET_CENTS", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, 75, cfg.WarnThresholdPct)
+	})
+
+	t.Run("with invalid value returns fallback", func(t *testing.T) {
+		t.Setenv("WARN_THRESHOLD_PCT", "invalid")
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("MONTHLY_BUDGET_CENTS", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, 80, cfg.WarnThresholdPct) // fallback value
+	})
+
+	t.Run("with empty value returns fallback", func(t *testing.T) {
+		t.Setenv("WARN_THRESHOLD_PCT", "")
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("MONTHLY_BUDGET_CENTS", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, 80, cfg.WarnThresholdPct) // fallback value
+	})
+}
+
+func TestParseInt64Env(t *testing.T) {
+	t.Run("with valid value", func(t *testing.T) {
+		t.Setenv("MONTHLY_BUDGET_CENTS", "2500000")
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("WARN_THRESHOLD_PCT", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, int64(2500000), cfg.MonthlyBudgetCents)
+	})
+
+	t.Run("with invalid value returns fallback", func(t *testing.T) {
+		t.Setenv("MONTHLY_BUDGET_CENTS", "not_a_number")
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("WARN_THRESHOLD_PCT", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents) // fallback value
+	})
+
+	t.Run("with empty value returns fallback", func(t *testing.T) {
+		t.Setenv("MONTHLY_BUDGET_CENTS", "")
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SMTP_HOST", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		t.Setenv("WARN_THRESHOLD_PCT", "")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents) // fallback value
+	})
 }

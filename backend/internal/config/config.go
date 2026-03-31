@@ -36,7 +36,7 @@ func Load() (*Config, error) {
 		AsaasURL:    getEnv("ASAAS_URL", "https://sandbox.asaas.com/api/v3"),
 		CronSecret:         os.Getenv("CRON_SECRET"),
 		AsaasWebhookSecret: os.Getenv("ASAAS_WEBHOOK_SECRET"),
-		SMTPHost:           os.Getenv("SMTP_HOST"),
+		SMTPHost:           getEnv("SMTP_HOST", "localhost"),
 		SMTPPort:           getEnv("SMTP_PORT", "587"),
 		SMTPUsername:       os.Getenv("SMTP_USERNAME"),
 		SMTPPassword:       os.Getenv("SMTP_PASSWORD"),
