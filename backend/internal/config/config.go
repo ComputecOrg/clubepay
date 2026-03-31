@@ -20,7 +20,9 @@ type Config struct {
 	SMTPPassword       string
 	CORSOrigins        string
 	FrontendURL        string
-	// New spending config
+	// Monitoring
+	SentryDSN string
+	// Spending config
 	MonthlyBudgetCents   int64
 	SpendingAlertEmail   string
 	WarnThresholdPct     int
@@ -42,6 +44,7 @@ func Load() (*Config, error) {
 		SMTPPassword:       os.Getenv("SMTP_PASSWORD"),
 		CORSOrigins:        getEnv("CORS_ORIGINS", "*"),
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
+		SentryDSN:          os.Getenv("SENTRY_DSN"),
 		MonthlyBudgetCents: parseInt64Env("MONTHLY_BUDGET_CENTS", 500000),
 		SpendingAlertEmail: getEnv("SPENDING_ALERT_EMAIL", "ceo@clubepay.com"),
 		WarnThresholdPct:   parseIntEnv("WARN_THRESHOLD_PCT", 80),
