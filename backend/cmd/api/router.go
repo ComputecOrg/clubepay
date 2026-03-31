@@ -81,6 +81,11 @@ func setupRouter(cfg *config.Config, db DBPinger, h *handler.Handler) http.Handl
 
 		r.Get("/api/subscribers/search", h.SearchSubscribers)
 		r.Post("/api/validate-usage-owner", h.ValidateUsageByOwner)
+
+		// Spending alerts
+		r.Get("/api/owner/spending/status", h.GetSpendingStatus)
+		r.Get("/api/owner/spending/history", h.GetSpendingHistory)
+		r.Get("/api/owner/spending/alerts", h.GetAlertHistory)
 	})
 
 	// Subscriber routes

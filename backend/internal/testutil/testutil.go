@@ -115,7 +115,7 @@ func setupWithTestcontainer(t *testing.T, ctx context.Context) *pgxpool.Pool {
 // cleanTables truncates all tables to ensure test isolation when sharing a database.
 func cleanTables(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
-	tables := []string{"usages", "referrals", "subscriptions", "plans", "businesses", "password_resets", "users"}
+	tables := []string{"spending_alerts", "monthly_costs", "usages", "referrals", "subscriptions", "plans", "businesses", "password_resets", "users"}
 	for _, table := range tables {
 		if _, err := pool.Exec(context.Background(), "DELETE FROM "+table); err != nil {
 			t.Fatalf("failed to clean table %s: %v", table, err)

@@ -155,6 +155,42 @@ func (q *Queries) GetRecentSpendingAlert(ctx context.Context, arg GetRecentSpend
 	return i, err
 }
 
+const listAllBusinesses = `-- name: ListAllBusinesses :many
+SELECT id, owner_id, name, slug, segment, address, logo_url, created_at, updated_at
+FROM businesses
+ORDER BY id ASC
+`
+
+func (q *Queries) ListAllBusinesses(ctx context.Context) ([]Business, error) {
+	rows, err := q.db.Query(ctx, listAllBusinesses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Business{}
+	for rows.Next() {
+		var i Business
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerID,
+			&i.Name,
+			&i.Slug,
+			&i.Segment,
+			&i.Address,
+			&i.LogoUrl,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMonthlyCosts = `-- name: ListMonthlyCosts :many
 SELECT id, business_id, month, infrastructure_cost_cents, claude_api_tokens, total_cost_cents, monthly_budget_cents, created_at, updated_at
 FROM monthly_costs

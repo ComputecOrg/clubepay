@@ -90,6 +90,12 @@ func (h *Handler) Reconcile(w http.ResponseWriter, r *http.Request) {
 		syncedCount++
 	}
 
+	// 3. Send spending alerts
+	if err := h.SendSpendingAlerts(ctx); err != nil {
+		slog.Error("reconcile: failed to send spending alerts", "error", err)
+		// Don't fail the whole reconcile, just log the error
+	}
+
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"blocked": blockedCount,
 		"synced":  syncedCount,
