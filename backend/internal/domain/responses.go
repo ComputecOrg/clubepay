@@ -3,8 +3,9 @@ package domain
 import "time"
 
 // AuthResponse is returned by register and login endpoints.
+// Token is set via HttpOnly cookie (Set-Cookie) and omitted from JSON to prevent XSS exposure.
 type AuthResponse struct {
-	Token    string            `json:"token"`
+	Token    string            `json:"-"`
 	User     UserResponse      `json:"user"`
 	Business *BusinessResponse `json:"business,omitempty"`
 }

@@ -43,8 +43,7 @@ export default function ValidarPage() {
     try {
       const data = await api.post<ValidateResponse>(
         "/api/validate-usage",
-        { business_slug: slug },
-        token
+        { business_slug: slug }
       );
       setResult(data);
       setState("success");
