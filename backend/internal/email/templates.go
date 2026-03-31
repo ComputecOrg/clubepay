@@ -4,12 +4,12 @@ import "fmt"
 
 const htmlWrapper = `<html><body style="font-family:system-ui,sans-serif;color:#333;max-width:600px;margin:0 auto;padding:20px">
 <div style="background:#2a7d6e;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0">
-<h1 style="margin:0;font-size:24px">ClubePay</h1>
+<h1 style="margin:0;font-size:24px">AssinaPix</h1>
 </div>
 <div style="padding:20px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
 %s
 </div>
-<p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:16px">ClubePay — Clube de assinatura para seu negocio</p>
+<p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:16px">AssinaPix — Assinatura via Pix</p>
 </body></html>`
 
 func WelcomeEmail(name, planName, businessName string) (string, string) {
