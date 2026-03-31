@@ -40,6 +40,7 @@ jobs:
           DATABASE_URL: postgres://clubepay:clubepay@localhost:5432/clubepay_test?sslmode=disable
           JWT_SECRET: ci-test-secret
           CRON_SECRET: ci-cron-secret
+          SPENDING_ALERT_EMAIL: ci-alerts@test.local
         run: go test ./... -v -race -count=1 -p 1
 
       - name: Build
