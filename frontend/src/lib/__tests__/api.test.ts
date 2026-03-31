@@ -34,18 +34,7 @@ describe("api.get", () => {
     expect(callArgs[1].credentials).toBe("include");
   });
 
-  it("sends authorization header when token provided", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({}),
-    });
-
-    await api.get("/api/test", "my-token");
-    const callArgs = mockFetch.mock.calls[0];
-    expect(callArgs[1].headers["Authorization"]).toBe("Bearer my-token");
-  });
-
-  it("does not send authorization header when no token", async () => {
+  it("não envia Authorization header (auth via HttpOnly cookie)", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({}),
@@ -145,31 +134,33 @@ describe("api.post", () => {
 });
 
 describe("api.put", () => {
-  it("makes PUT request with body and token", async () => {
+  it("makes PUT request with body via HttpOnly cookie", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ updated: true }),
     });
 
-    await api.put("/api/items/1", { name: "updated" }, "token");
+    await api.put("/api/items/1", { name: "updated" });
     const callArgs = mockFetch.mock.calls[0];
     expect(callArgs[1].method).toBe("PUT");
     expect(callArgs[1].body).toBe(JSON.stringify({ name: "updated" }));
-    expect(callArgs[1].headers["Authorization"]).toBe("Bearer token");
+    expect(callArgs[1].credentials).toBe("include");
+    expect(callArgs[1].headers["Authorization"]).toBeUndefined();
   });
 });
 
 describe("api.del", () => {
-  it("makes DELETE request with token", async () => {
+  it("makes DELETE request via HttpOnly cookie", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({}),
     });
 
-    await api.del("/api/items/1", "token");
+    await api.del("/api/items/1");
     const callArgs = mockFetch.mock.calls[0];
     expect(callArgs[1].method).toBe("DELETE");
-    expect(callArgs[1].headers["Authorization"]).toBe("Bearer token");
+    expect(callArgs[1].credentials).toBe("include");
+    expect(callArgs[1].headers["Authorization"]).toBeUndefined();
   });
 
   it("does not send body on DELETE", async () => {
@@ -178,7 +169,7 @@ describe("api.del", () => {
       json: () => Promise.resolve({}),
     });
 
-    await api.del("/api/items/1", "token");
+    await api.del("/api/items/1");
     const callArgs = mockFetch.mock.calls[0];
     expect(callArgs[1].body).toBeUndefined();
   });

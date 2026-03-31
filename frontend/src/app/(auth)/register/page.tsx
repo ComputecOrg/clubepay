@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { setToken, setRole } from "@/lib/auth";
 
 interface RegisterResponse {
-  token: string;
+  user: { role: string };
 }
 
 export default function RegisterPage() {
@@ -33,7 +33,8 @@ export default function RegisterPage() {
         business_name: businessName,
         segment,
       });
-      setToken(data.token);
+      setToken();
+      setRole(data.user.role);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {

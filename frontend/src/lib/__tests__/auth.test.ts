@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { getToken, setToken, clearToken } from "@/lib/auth";
+import { getToken, setToken, clearToken, setRole, getRole } from "@/lib/auth";
 
 beforeEach(() => {
   // Clear all cookies
@@ -15,14 +15,17 @@ describe("auth - segurança HttpOnly cookie", () => {
     expect(localStorage.getItem("assinapix_token")).toBeNull();
   });
 
-  it("setToken define cookie de sessão para o browser gerenciar", () => {
-    setToken("abc123");
-    expect(document.cookie).toContain("assinapix_session=abc123");
+  it("setToken define cookie de sessão como indicador '1' (NÃO armazena o JWT)", () => {
+    setToken("qualquer-jwt-secreto");
+    // O JWT NÃO deve estar no cookie (prevenção XSS)
+    expect(document.cookie).not.toContain("qualquer-jwt-secreto");
+    // O indicador de sessão deve ser "1"
+    expect(document.cookie).toContain("assinapix_session=1");
   });
 
-  it("getToken lê do cookie de sessão (não do localStorage)", () => {
-    document.cookie = "assinapix_session=xyz789; path=/";
-    expect(getToken()).toBe("xyz789");
+  it("getToken retorna '1' quando sessão está ativa", () => {
+    setToken("irrelevante");
+    expect(getToken()).toBe("1");
   });
 
   it("getToken retorna null quando não há sessão", () => {
@@ -36,22 +39,49 @@ describe("auth - segurança HttpOnly cookie", () => {
   });
 
   it("clearToken NÃO usa localStorage", () => {
-    // Garantir que clearToken não interage com localStorage
     localStorage.setItem("assinapix_token", "manual");
     clearToken();
     // localStorage deve permanecer inalterado (clearToken não deve mexer nele)
     expect(localStorage.getItem("assinapix_token")).toBe("manual");
   });
 
-  it("setToken sobrescreve sessão existente", () => {
+  it("setToken sobrescreve sessão existente (sempre '1')", () => {
     setToken("first");
     setToken("second");
-    expect(getToken()).toBe("second");
+    expect(getToken()).toBe("1");
   });
 
   it("getToken retorna null quando window é undefined (SSR)", () => {
-    // Esta é uma verificação indireta - getToken deve retornar null em SSR
-    // No Vitest o window está definido, mas verificamos que não lê localStorage
     expect(() => getToken()).not.toThrow();
+  });
+});
+
+describe("auth - papel do usuário (role)", () => {
+  it("setRole armazena o papel no cookie assinapix_role", () => {
+    setRole("owner");
+    expect(document.cookie).toContain("assinapix_role=owner");
+  });
+
+  it("getRole retorna o papel armazenado", () => {
+    setRole("subscriber");
+    expect(getRole()).toBe("subscriber");
+  });
+
+  it("getRole retorna null quando não há papel armazenado", () => {
+    expect(getRole()).toBeNull();
+  });
+
+  it("clearToken remove também o cookie de papel", () => {
+    setToken("t");
+    setRole("owner");
+    clearToken();
+    expect(getToken()).toBeNull();
+    expect(getRole()).toBeNull();
+  });
+
+  it("setRole sobrescreve papel existente", () => {
+    setRole("owner");
+    setRole("subscriber");
+    expect(getRole()).toBe("subscriber");
   });
 });

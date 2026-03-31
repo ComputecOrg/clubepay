@@ -21,12 +21,14 @@ import (
 )
 
 // setupHandler creates a Handler with a real testcontainers PostgreSQL DB, a mock PSP, and test config.
+// SecureCookie=true simula produção.
 func setupHandler(t *testing.T) *handler.Handler {
 	t.Helper()
 	pool := testutil.SetupTestDB(t)
 	queries := repository.New(pool)
 	cfg := &config.Config{
-		JWTSecret: "test-secret-key",
+		JWTSecret:    "test-secret-key",
+		SecureCookie: true,
 	}
 	mockPSP := &psp.MockPSP{}
 	mockEmail := &email.MockSender{}
@@ -64,10 +66,9 @@ func TestRegisterOwner_Success(t *testing.T) {
 	var resp map[string]interface{}
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
 
-	// JWT token must be present
-	token, ok := resp["token"].(string)
-	require.True(t, ok, "token field must be a string")
-	assert.NotEmpty(t, token)
+	// JWT token must NOT be in the JSON body (XSS prevention)
+	_, hasToken := resp["token"]
+	assert.False(t, hasToken, "token deve estar ausente do JSON body (enviado via cookie HttpOnly)")
 
 	// User data must be present
 	user, ok := resp["user"].(map[string]interface{})
@@ -227,9 +228,9 @@ func TestLogin_Success(t *testing.T) {
 	var resp map[string]interface{}
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
 
-	token, ok := resp["token"].(string)
-	require.True(t, ok, "token must be a string")
-	assert.NotEmpty(t, token)
+	// JWT token must NOT be in the JSON body (XSS prevention)
+	_, hasToken := resp["token"]
+	assert.False(t, hasToken, "token deve estar ausente do JSON body")
 
 	user, ok := resp["user"].(map[string]interface{})
 	require.True(t, ok, "user must be present")
@@ -309,9 +310,9 @@ func TestRegisterSubscriber_Success(t *testing.T) {
 	var resp map[string]interface{}
 	require.NoError(t, json.NewDecoder(rr.Body).Decode(&resp))
 
-	token, ok := resp["token"].(string)
-	require.True(t, ok, "token must be a string")
-	assert.NotEmpty(t, token)
+	// JWT token must NOT be in the JSON body (XSS prevention)
+	_, hasToken := resp["token"]
+	assert.False(t, hasToken, "token deve estar ausente do JSON body")
 
 	user, ok := resp["user"].(map[string]interface{})
 	require.True(t, ok, "user must be present")
@@ -614,4 +615,27 @@ func TestRegisterSubscriber_MissingFields(t *testing.T) {
 			assert.Equal(t, http.StatusBadRequest, rr.Code)
 		})
 	}
+}
+
+func TestLogout_ClearsHttpOnlyCookie(t *testing.T) {
+	h := setupHandler(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/logout", nil)
+	rr := httptest.NewRecorder()
+
+	h.Logout(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var cleared *http.Cookie
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "clubepay_token" {
+			cleared = c
+			break
+		}
+	}
+	require.NotNil(t, cleared, "deve enviar Set-Cookie para clubepay_token")
+	assert.Equal(t, 0, cleared.MaxAge, "MaxAge deve ser 0 para remover o cookie")
+	assert.Empty(t, cleared.Value, "valor do cookie deve ser vazio")
+	assert.True(t, cleared.HttpOnly, "cookie removido deve manter flag HttpOnly")
 }

@@ -53,7 +53,7 @@ export default function PlanosPage() {
     }
 
     try {
-      const data = await api.get<PlansResponse>("/api/plans", token);
+      const data = await api.get<PlansResponse>("/api/plans");
       setPlans(data.plans ?? []);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -129,9 +129,9 @@ export default function PlanosPage() {
 
     try {
       if (editingPlan) {
-        await api.put(`/api/plans/${editingPlan.id}`, payload, token);
+        await api.put(`/api/plans/${editingPlan.id}`, payload);
       } else {
-        await api.post("/api/plans", payload, token);
+        await api.post("/api/plans", payload);
       }
       resetForm();
       fetchPlans();
@@ -154,7 +154,7 @@ export default function PlanosPage() {
     if (!token) return;
 
     try {
-      await api.del(`/api/plans/${planId}`, token);
+      await api.del(`/api/plans/${planId}`);
       fetchPlans();
     } catch (err) {
       if (err instanceof ApiError) {

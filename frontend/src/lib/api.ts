@@ -3,22 +3,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 interface RequestOptions {
   method?: string;
   body?: unknown;
-  token?: string;
 }
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 500;
 
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token } = opts;
+  const { method = "GET", body } = opts;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   let lastError: ApiError | null = null;
 
@@ -61,15 +56,15 @@ export class ApiError extends Error {
 }
 
 export const api = {
-  get: <T>(path: string, token?: string) =>
-    request<T>(path, { token }),
+  get: <T>(path: string) =>
+    request<T>(path),
 
-  post: <T>(path: string, body: unknown, token?: string) =>
-    request<T>(path, { method: "POST", body, token }),
+  post: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: "POST", body }),
 
-  put: <T>(path: string, body: unknown, token?: string) =>
-    request<T>(path, { method: "PUT", body, token }),
+  put: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: "PUT", body }),
 
-  del: <T>(path: string, token?: string) =>
-    request<T>(path, { method: "DELETE", token }),
+  del: <T>(path: string) =>
+    request<T>(path, { method: "DELETE" }),
 };

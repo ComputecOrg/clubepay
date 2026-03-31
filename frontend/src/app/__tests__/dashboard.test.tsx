@@ -108,12 +108,9 @@ describe("DashboardPage", () => {
     expect(screen.getByText("1 ativo")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
 
-    // API was called with the token
-    expect(mockApi.get).toHaveBeenCalledWith("/api/business", "fake-token");
-    expect(mockApi.get).toHaveBeenCalledWith(
-      "/api/subscriptions",
-      "fake-token"
-    );
+    // API was called (auth via HttpOnly cookie, no token param)
+    expect(mockApi.get).toHaveBeenCalledWith("/api/business");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/subscriptions");
   });
 
   it('shows "Carregando..." while loading', () => {
