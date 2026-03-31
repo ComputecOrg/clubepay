@@ -1,7 +1,7 @@
 ---
 title: "Como a Padaria do Seu Antônio aumentou o lucro em 15% sem abrir mais cedo"
 date: "2026-04-17"
-author: "Equipe ClubePay"
+author: "Equipe AssinaPix"
 excerpt: "Veja o estudo de caso hipotético de como uma padaria de bairro transformou clientes frequentes em assinantes e aumentou o lucro mensal em 15% em 60 dias."
 readingTime: "7 min de leitura"
 tags: ["caso de sucesso", "padaria", "clube assinatura", "lucro", "fidelização"]
@@ -89,9 +89,9 @@ Não tentou vender o clube para todo mundo. Foi falar especificamente com quem j
 
 O clube não foi "10% de desconto em tudo". Foi um produto novo: a segurança de ter o café da manhã garantido todo dia, sem precisar pensar no preço. Para o público-alvo (trabalhadores e aposentados com rotina), isso tem valor emocional além do financeiro.
 
-### 3. Usou o ClubePay para automatizar tudo
+### 3. Usou o AssinaPix para automatizar tudo
 
-Em vez de cobrar manualmente ou criar uma planilha, Seu Antônio usou o ClubePay para:
+Em vez de cobrar manualmente ou criar uma planilha, Seu Antônio usou o AssinaPix para:
 - Criar o plano do clube
 - Compartilhar o link de adesão pelo WhatsApp
 - Receber as cobranças automáticas via Pix todo mês
@@ -137,7 +137,7 @@ E se o cliente cancelar? Você perde o assinante, mas mantém a relação — e 
 
 O clube de assinatura não é uma ideia nova. Academias, plataformas de streaming, serviços de entrega — todos usam o modelo de receita recorrente porque funciona.
 
-Para padarias e cafeterias, o ClubePay torna isso acessível em minutos, sem precisar de tecnologia complexa, cartão de crédito do cliente, ou sistema bancário.
+Para padarias e cafeterias, o AssinaPix torna isso acessível em minutos, sem precisar de tecnologia complexa, cartão de crédito do cliente, ou sistema bancário.
 
 Seu Antônio aumentou o lucro em 15% sem contratar mais ninguém, sem ampliar o espaço, sem acordar mais cedo. Só mudando o jeito de cobrar quem já era seu cliente fiel.
 
@@ -145,6 +145,6 @@ Seu Antônio aumentou o lucro em 15% sem contratar mais ninguém, sem ampliar o 
 
 **Você também pode criar seu clube de assinatura hoje.**
 
-[Comece gratuitamente no ClubePay — até 15 assinantes sem custo →](/)
+[Comece gratuitamente no AssinaPix — até 15 assinantes sem custo →](/)
 
 *Leva menos de 5 minutos para criar. Seus clientes pagam pelo Pix. Você recebe todo mês.*

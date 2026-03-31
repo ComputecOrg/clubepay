@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ClubePay",
+  title: "AssinaPix",
   description: "Clube de assinatura para negócios físicos",
 };
 

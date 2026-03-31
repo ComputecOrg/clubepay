@@ -12,7 +12,7 @@ beforeEach(() => {
 describe("auth - segurança HttpOnly cookie", () => {
   it("setToken NÃO armazena token no localStorage", () => {
     setToken("abc123");
-    expect(localStorage.getItem("clubepay_token")).toBeNull();
+    expect(localStorage.getItem("assinapix_token")).toBeNull();
   });
 
   it("setToken define cookie de sessão como indicador '1' (NÃO armazena o JWT)", () => {
@@ -20,7 +20,7 @@ describe("auth - segurança HttpOnly cookie", () => {
     // O JWT NÃO deve estar no cookie (prevenção XSS)
     expect(document.cookie).not.toContain("qualquer-jwt-secreto");
     // O indicador de sessão deve ser "1"
-    expect(document.cookie).toContain("clubepay_session=1");
+    expect(document.cookie).toContain("assinapix_session=1");
   });
 
   it("getToken retorna '1' quando sessão está ativa", () => {
@@ -39,10 +39,10 @@ describe("auth - segurança HttpOnly cookie", () => {
   });
 
   it("clearToken NÃO usa localStorage", () => {
-    localStorage.setItem("clubepay_token", "manual");
+    localStorage.setItem("assinapix_token", "manual");
     clearToken();
     // localStorage deve permanecer inalterado (clearToken não deve mexer nele)
-    expect(localStorage.getItem("clubepay_token")).toBe("manual");
+    expect(localStorage.getItem("assinapix_token")).toBe("manual");
   });
 
   it("setToken sobrescreve sessão existente (sempre '1')", () => {
@@ -57,9 +57,9 @@ describe("auth - segurança HttpOnly cookie", () => {
 });
 
 describe("auth - papel do usuário (role)", () => {
-  it("setRole armazena o papel no cookie clubepay_role", () => {
+  it("setRole armazena o papel no cookie assinapix_role", () => {
     setRole("owner");
-    expect(document.cookie).toContain("clubepay_role=owner");
+    expect(document.cookie).toContain("assinapix_role=owner");
   });
 
   it("getRole retorna o papel armazenado", () => {

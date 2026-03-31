@@ -3,7 +3,7 @@ import { getAllBlogPosts } from '@/lib/blog';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Blog | ClubePay',
+  title: 'Blog | AssinaPix',
   description: 'Dicas, guias e insights sobre assinatura, Pix recorrente e gestão de negócio.',
 };
 
@@ -14,7 +14,7 @@ export default async function BlogPage() {
     <div className="mx-auto max-w-4xl px-6 py-12">
       {/* Header */}
       <div className="mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog ClubePay</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Blog AssinaPix</h1>
         <p className="text-lg text-gray-600">
           Dicas, guias e insights sobre como criar um clube de assinatura para seu negócio.
         </p>

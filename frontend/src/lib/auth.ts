@@ -1,17 +1,17 @@
-// clubepay_session: indicador de sessão não-HttpOnly (valor "1").
-// O JWT real está em clubepay_token (HttpOnly, gerenciado pelo backend via Set-Cookie).
-const SESSION_COOKIE = "clubepay_session";
+// assinapix_session: indicador de sessão não-HttpOnly (valor "1").
+// O JWT real está em assinapix_token (HttpOnly, gerenciado pelo backend via Set-Cookie).
+const SESSION_COOKIE = "assinapix_session";
 
-// clubepay_role: papel do usuário (ex: "owner", "subscriber").
+// assinapix_role: papel do usuário (ex: "owner", "subscriber").
 // Não é sensível — apenas para decisões de roteamento client-side.
-const ROLE_COOKIE = "clubepay_role";
+const ROLE_COOKIE = "assinapix_role";
 
 const MAX_AGE = 60 * 60 * 24; // 24 horas
 
 /** Retorna "1" se há sessão ativa, null caso contrário. */
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)clubepay_session=([^;]+)/);
+  const match = document.cookie.match(/(?:^|;\s*)assinapix_session=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 
@@ -31,7 +31,7 @@ export function setRole(role: string): void {
 /** Retorna o papel do usuário ("owner" | "subscriber" | null). */
 export function getRole(): string | null {
   if (typeof window === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)clubepay_role=([^;]+)/);
+  const match = document.cookie.match(/(?:^|;\s*)assinapix_role=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 

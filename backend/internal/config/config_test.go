@@ -34,7 +34,7 @@ func TestLoad_RequiredFields(t *testing.T) {
 		t.Setenv("SPENDING_ALERT_EMAIL", "")
 		cfg, err := config.Load()
 		require.NoError(t, err)
-		assert.Equal(t, "ceo@clubepay.com", cfg.SpendingAlertEmail)
+		assert.Equal(t, "ceo@assinapix.com.br", cfg.SpendingAlertEmail)
 	})
 }
 
@@ -62,7 +62,7 @@ func TestLoad_Defaults(t *testing.T) {
 	assert.Equal(t, "http://localhost:3000", cfg.FrontendURL)
 	assert.Equal(t, "localhost", cfg.SMTPHost)
 	assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents)
-	assert.Equal(t, "ceo@clubepay.com", cfg.SpendingAlertEmail)
+	assert.Equal(t, "ceo@assinapix.com.br", cfg.SpendingAlertEmail)
 	assert.Equal(t, 80, cfg.WarnThresholdPct)
 	assert.Equal(t, 95, cfg.CriticalThresholdPct)
 }

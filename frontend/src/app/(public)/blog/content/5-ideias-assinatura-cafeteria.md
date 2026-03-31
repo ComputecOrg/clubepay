@@ -24,7 +24,7 @@ R$ 99/mês (cerca de R$ 3,30 por café)
 - Margem alta para a cafeteria
 
 ### Como Implementar
-Use o ClubePay para criar este plano em 5 minutos. Os clientes pagam via Pix recorrente pelo Asaas.
+Use o AssinaPix para criar este plano em 5 minutos. Os clientes pagam via Pix recorrente pelo Asaas.
 
 ---
 
@@ -86,7 +86,7 @@ Cria comunidade. Clientes se sentem especiais.
 ## Próximos Passos
 
 1. **Escolha um plano** que faz sentido para seu negócio
-2. **Configure no ClubePay** em menos de 5 minutos
+2. **Configure no AssinaPix** em menos de 5 minutos
 3. **Promova** para clientes frequentes
 4. **Monitore** a adesão e ajuste conforme necessário
 
@@ -94,4 +94,4 @@ Lembre-se: o melhor plano é aquele que seus clientes realmente querem. Teste, a
 
 ---
 
-**Tem outras ideias?** Compartilhe conosco nos comentários ou envie um email para contato@clubepay.com
+**Tem outras ideias?** Compartilhe conosco nos comentários ou envie um email para contato@assinapix.com.br

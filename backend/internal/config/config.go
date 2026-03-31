@@ -51,7 +51,7 @@ func Load() (*Config, error) {
 		SecureCookie:       getEnv("APP_ENV", "production") != "development",
 		SentryDSN:          os.Getenv("SENTRY_DSN"),
 		MonthlyBudgetCents: parseInt64Env("MONTHLY_BUDGET_CENTS", 500000),
-		SpendingAlertEmail: getEnv("SPENDING_ALERT_EMAIL", "ceo@clubepay.com"),
+		SpendingAlertEmail: getEnv("SPENDING_ALERT_EMAIL", "ceo@assinapix.com.br"),
 		WarnThresholdPct:   parseIntEnv("WARN_THRESHOLD_PCT", 80),
 		CriticalThresholdPct: parseIntEnv("CRITICAL_THRESHOLD_PCT", 95),
 		GA4MeasurementID:     os.Getenv("GA4_MEASUREMENT_ID"),

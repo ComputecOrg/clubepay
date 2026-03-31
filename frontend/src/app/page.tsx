@@ -6,7 +6,7 @@ export default function Home() {
       <div className="text-center max-w-lg flex flex-col gap-6">
         <div>
           <h1 className="text-5xl font-bold tracking-tight text-primary">
-            ClubePay
+            AssinaPix
           </h1>
           <p className="mt-3 text-xl text-gray-600">
             Crie seu clube de assinatura em 5 minutos

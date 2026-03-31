@@ -38,7 +38,7 @@ Pix revolucionou pagamentos instantâneos no Brasil. Agora, com **Pix recorrente
 
 ---
 
-## Como Implementar no ClubePay
+## Como Implementar no AssinaPix
 
 ### Passo 1: Crie Conta no Asaas
 Asaas é o provedor Pix recorrente mais usado no Brasil.
@@ -47,11 +47,11 @@ Asaas é o provedor Pix recorrente mais usado no Brasil.
 1. Acesse asaas.com
 2. Cadastre negócio
 3. Gere chave PIX
-4. Vincule no ClubePay
+4. Vincule no AssinaPix
 ```
 
 ### Passo 2: Configure Plano de Assinatura
-No ClubePay, crie um plano com:
+No AssinaPix, crie um plano com:
 - Nome: "Café Premium - Pix Recorrente"
 - Valor: R$ 99/mês
 - Recorrência: Mensal
@@ -65,7 +65,7 @@ Cliente:
 4. Pronto! Cobrança automática começa
 
 ### Passo 4: Monitore
-- Dashboard do ClubePay mostra todos os assinantes
+- Dashboard do AssinaPix mostra todos os assinantes
 - Alertas de rejeição
 - Relatórios de receita
 
@@ -101,7 +101,7 @@ Cliente:
 **R:** 1-2 minutos. Asaas transfere direto pra sua conta.
 
 ### P: E se o cliente não tiver saldo?
-**R:** Cobrança é rejeitada. ClubePay envia email ao cliente. Retry automático em 3 dias.
+**R:** Cobrança é rejeitada. AssinaPix envia email ao cliente. Retry automático em 3 dias.
 
 ### P: Posso cancelar assinatura?
 **R:** Sim, pelo dashboard. Cliente também cancela pelo link de desinscrição.
@@ -114,7 +114,7 @@ Cliente:
 ## Próximos Passos
 
 1. Abra conta Asaas
-2. Crie plano no ClubePay
+2. Crie plano no AssinaPix
 3. Teste com 5 clientes
 4. Analise churn e ajuste preço/benefício
 5. Escale!

@@ -35,7 +35,7 @@ export default function EsqueciSenhaPage() {
         <div className="w-full max-w-sm">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-primary">
-              ClubePay
+              AssinaPix
             </h1>
           </div>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 flex flex-col gap-4 text-center">
@@ -61,7 +61,7 @@ export default function EsqueciSenhaPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary">
-            ClubePay
+            AssinaPix
           </h1>
           <p className="mt-2 text-gray-500">Recupere sua senha</p>
         </div>
