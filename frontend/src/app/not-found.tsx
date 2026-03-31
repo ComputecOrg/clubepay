@@ -13,8 +13,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-block px-6 py-3 rounded-lg text-white font-semibold"
-          style={{ backgroundColor: "#2a7d6e" }}
+          className="inline-block px-6 py-3 rounded-lg text-white font-semibold bg-primary"
         >
           Voltar ao inicio
         </Link>

@@ -24,8 +24,7 @@ function ResetarSenhaForm() {
         <p className="text-sm text-gray-500">
           <Link
             href="/esqueci-senha"
-            className="font-semibold"
-            style={{ color: "#2a7d6e" }}
+            className="font-semibold text-primary"
           >
             Solicitar novo link
           </Link>
@@ -43,8 +42,7 @@ function ResetarSenhaForm() {
         <p className="text-sm text-gray-500">
           <Link
             href="/login"
-            className="font-semibold"
-            style={{ color: "#2a7d6e" }}
+            className="font-semibold text-primary"
           >
             Ir para o login
           </Link>
@@ -104,7 +102,7 @@ function ResetarSenhaForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="••••••••"
         />
       </div>
@@ -119,7 +117,7 @@ function ResetarSenhaForm() {
           required
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+          className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="••••••••"
         />
       </div>
@@ -127,8 +125,7 @@ function ResetarSenhaForm() {
       <button
         type="submit"
         disabled={loading}
-        className="mt-2 w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-        style={{ backgroundColor: "#2a7d6e" }}
+        className="mt-2 w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
       >
         {loading ? "Salvando..." : "Redefinir senha"}
       </button>
@@ -136,8 +133,7 @@ function ResetarSenhaForm() {
       <p className="text-center text-sm text-gray-500">
         <Link
           href="/login"
-          className="font-semibold"
-          style={{ color: "#2a7d6e" }}
+          className="font-semibold text-primary"
         >
           Voltar para o login
         </Link>
@@ -151,7 +147,7 @@ export default function ResetarSenhaPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold" style={{ color: "#2a7d6e" }}>
+          <h1 className="text-3xl font-bold text-primary">
             ClubePay
           </h1>
           <p className="mt-2 text-gray-500">Redefinir senha</p>

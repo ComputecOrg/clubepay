@@ -74,8 +74,7 @@ export default async function BusinessLandingPage({ params }: PageProps) {
       <div className="mx-auto max-w-2xl px-4 py-16">
         <div className="text-center mb-10">
           <div
-            className="inline-block rounded-full px-4 py-1 text-sm font-medium text-white mb-4"
-            style={{ backgroundColor: "#2a7d6e" }}
+            className="inline-block rounded-full px-4 py-1 text-sm font-medium text-white mb-4 bg-primary"
           >
             {business.segment}
           </div>

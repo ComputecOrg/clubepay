@@ -21,7 +21,7 @@ export default function UsageBar({ used, limit, period }: UsageBarProps) {
           className="h-full rounded-full transition-all duration-300"
           style={{
             width: `${percentage}%`,
-            backgroundColor: "#2a7d6e",
+            backgroundColor: "var(--color-primary)",
           }}
         />
       </div>
