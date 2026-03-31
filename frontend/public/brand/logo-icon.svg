@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="AssinaPix">
+  <!-- Diamond shape (Pix reference) -->
+  <path d="M24 3 L45 24 L24 45 L3 24 Z" fill="#E8622A"/>
+  <!-- Inner highlight (top-right facet) -->
+  <path d="M24 3 L45 24 L24 29 Z" fill="#F07040" opacity="0.45"/>
+  <!-- Checkmark: represents "assinar" -->
+  <path d="M13 25 L21 33 L36 17" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,10 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2a7d6e;
-  --color-accent: #d4a853;
+  /* ──────────────────────────────────────────────
+   * AssinaPix Design Tokens
+   * Primary: coral-orange  |  Accent: Pix teal
+   * ────────────────────────────────────────────── */
+
+  /* Primary — coral-orange (warmth, small business energy) */
+  --color-primary:       #E8622A;
+  --color-primary-dark:  #BF4A1A;
+  --color-primary-light: #FDE8DE;
+
+  /* Accent — Pix teal (digital, payment, modern) */
+  --color-accent:       #16A394;
+  --color-accent-dark:  #0D7A6E;
+  --color-accent-light: #D4F5F0;
+
+  /* Neutrals */
+  --color-background:   #FAFAF8;
+  --color-surface:      #FFFFFF;
+  --color-border:       #E8E8E5;
+  --color-muted:        #F4F4F2;
+  --color-muted-fg:     #737370;
+  --color-foreground:   #1A1A18;
+
+  /* Semantic */
+  --color-success:      #22C55E;
+  --color-warning:      #F59E0B;
+  --color-danger:       #EF4444;
+
+  /* Typography */
+  --font-headline: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {
-  font-family: system-ui, sans-serif;
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
 }
