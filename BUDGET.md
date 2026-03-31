@@ -79,7 +79,7 @@
 
 ## 2. Baseline Budget
 
-### Cenário 1: MVP (0-5 clientes reais)
+### Cenário 1: MVP (0-5 clientes reais) — Abril 2026
 
 | Item | Custo Mensal | Moeda | Observações |
 |------|--------|-------|-------------|
@@ -89,10 +89,11 @@
 | VPN | R$15 | BRL | Opcional, para blog |
 | SMTP | R$0 | BRL | Brevo free tier (300 emails/dia) ✅ confirmado |
 | Asaas | R$0 | BRL | ClubePay não paga; taxa é do lojista ✅ confirmado |
-| **Total** | **$200 + R$30,99** | **USD + BRL** | **~R$1.031 (1 USD = R$5)** |
-| **Total Estimado** | **~R$1.0k** | **BRL** | **Infraestrutura apenas** |
+| **Infraestrutura Total** | **$200 + R$30,99** | **USD + BRL** | **~R$1.031** |
+| **Marketing (Meta Ads)** | **R$800** | **BRL** | **Abril 2026 — Aprovado CLU-33** |
+| **Total Abril** | **~R$1.831** | **BRL** | **Incluindo growth marketing** |
 
-> **Nota**: R$117 menos que estimativa anterior (Asaas não é custo ClubePay)
+> **Nota**: Infraestrutura R$1.031 + Marketing R$800 (aprovado para Sprint 1 growth)
 
 ### Cenário 2: Growth (5-50 clientes)
 
@@ -105,6 +106,21 @@
 | SMTP | R$145 | Upgrade Brevo Starter (€25/mês, 20k emails) |
 | Asaas | R$0 | Continua custo zero para ClubePay |
 | **Total** | **~R$1.186** | **Infraestrutura** |
+
+---
+
+## 2.5 Marketing Budget (Abril 2026)
+
+### Meta Ads Campaign (Sprint 1 Growth)
+- **Campanha**: Awareness (Padarias/Cafeterias) + Retargeting (site visitors)
+- **Período**: 7–30 de abril 2026
+- **Orçamento Aprovado**: R$800/mês
+  - Awareness: R$500 (7–25 abr)
+  - Retargeting: R$300 (25–30 abr)
+- **Justificativa**: Principal canal pago para atingir Sprint 1 goal de 5 clientes reais
+- **ROI Target**: CAC < R$160/cliente (5 clientes com R$800)
+- **Aprovado por**: Fin (CFO) — CLU-33
+- **Status**: ✅ Aprovado — 2026-03-31
 
 ---
 
