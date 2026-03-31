@@ -151,6 +151,11 @@ clubepay/
 ### Cron
 - `POST /api/cron/reconcile` — Reconciliação diária (auth por secret)
 
+### Spending (Owner)
+- `GET /api/owner/spending/status` — Status atual de gastos (percentual, orçamento, restante)
+- `GET /api/owner/spending/history?limit=10&offset=0` — Histórico de gastos por mês
+- `GET /api/owner/spending/alerts?limit=10&offset=0` — Histórico de alertas com timestamps
+
 ### Public (sem auth)
 - `GET /api/public/business/:slug` — Dados do negócio pra landing page (SSR)
 - `GET /api/public/plans/:slug` — Planos do negócio pra landing page
