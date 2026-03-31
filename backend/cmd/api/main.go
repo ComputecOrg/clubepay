@@ -82,7 +82,7 @@ func main() {
 	h := handler.New(queries, cfg, pspClient, emailSender)
 
 	// Setup router
-	router := setupRouter(cfg, h)
+	router := setupRouter(cfg, pool, h)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
