@@ -17,7 +17,9 @@ func SeedOwner(t *testing.T, q *repository.Queries, email, name string) reposito
 	if err != nil {
 		t.Fatalf("failed to hash password: %v", err)
 	}
-	user, err := q.CreateUser(context.Background(), repository.CreateUserParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	user, err := q.CreateUser(ctx, repository.CreateUserParams{
 		Email:        email,
 		PasswordHash: string(hash),
 		Name:         name,
@@ -37,7 +39,9 @@ func SeedSubscriber(t *testing.T, q *repository.Queries, email, name, phone stri
 	if err != nil {
 		t.Fatalf("failed to hash password: %v", err)
 	}
-	user, err := q.CreateUser(context.Background(), repository.CreateUserParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	user, err := q.CreateUser(ctx, repository.CreateUserParams{
 		Email:        email,
 		PasswordHash: string(hash),
 		Name:         name,
@@ -53,7 +57,9 @@ func SeedSubscriber(t *testing.T, q *repository.Queries, email, name, phone stri
 // SeedBusiness creates a business for test fixtures.
 func SeedBusiness(t *testing.T, q *repository.Queries, ownerID int64, name, slug string) repository.Business {
 	t.Helper()
-	biz, err := q.CreateBusiness(context.Background(), repository.CreateBusinessParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	biz, err := q.CreateBusiness(ctx, repository.CreateBusinessParams{
 		OwnerID: ownerID,
 		Name:    name,
 		Slug:    slug,
@@ -70,7 +76,9 @@ func SeedBusiness(t *testing.T, q *repository.Queries, ownerID int64, name, slug
 // SeedPlan creates a plan for test fixtures.
 func SeedPlan(t *testing.T, q *repository.Queries, businessID int64, name string, priceCents int64, limitType string, limitCount int32) repository.Plan {
 	t.Helper()
-	plan, err := q.CreatePlan(context.Background(), repository.CreatePlanParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	plan, err := q.CreatePlan(ctx, repository.CreatePlanParams{
 		BusinessID:  businessID,
 		Name:        name,
 		Description: pgtype.Text{Valid: false},
@@ -87,7 +95,9 @@ func SeedPlan(t *testing.T, q *repository.Queries, businessID int64, name string
 // SeedSubscription creates an active subscription for test fixtures.
 func SeedSubscription(t *testing.T, q *repository.Queries, planID, subscriberID, businessID int64) repository.Subscription {
 	t.Helper()
-	sub, err := q.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	sub, err := q.CreateSubscription(ctx, repository.CreateSubscriptionParams{
 		PlanID:            planID,
 		SubscriberID:      subscriberID,
 		BusinessID:        businessID,
