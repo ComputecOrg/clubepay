@@ -71,6 +71,11 @@ func setupRouter(cfg *config.Config, h *handler.Handler) http.Handler {
 
 		r.Get("/api/subscribers/search", h.SearchSubscribers)
 		r.Post("/api/validate-usage-owner", h.ValidateUsageByOwner)
+
+		// Spending alerts routes
+		r.Get("/api/owner/spending/status", h.GetSpendingStatus)
+		r.Get("/api/owner/spending/history", h.GetSpendingHistory)
+		r.Get("/api/owner/spending/alerts", h.GetAlertHistory)
 	})
 
 	// Subscriber routes
