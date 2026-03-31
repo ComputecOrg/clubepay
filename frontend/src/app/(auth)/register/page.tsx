@@ -50,10 +50,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1
-            className="text-3xl font-bold"
-            style={{ color: "#2a7d6e" }}
-          >
+          <h1 className="text-3xl font-bold text-primary">
             ClubePay
           </h1>
           <p className="mt-2 text-gray-500">Crie seu clube em 5 minutos</p>
@@ -79,7 +76,7 @@ export default function RegisterPage() {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="João Silva"
             />
           </div>
@@ -94,7 +91,7 @@ export default function RegisterPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="seu@email.com"
             />
           </div>
@@ -113,7 +110,7 @@ export default function RegisterPage() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Mínimo 8 caracteres"
             />
           </div>
@@ -131,7 +128,7 @@ export default function RegisterPage() {
               required
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Café Central"
             />
           </div>
@@ -149,7 +146,7 @@ export default function RegisterPage() {
               required
               value={segment}
               onChange={(e) => setSegment(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="cafeteria"
             />
           </div>
@@ -157,19 +154,14 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-            style={{ backgroundColor: "#2a7d6e" }}
+            className="mt-2 w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
           >
             {loading ? "Criando conta..." : "Criar meu clube"}
           </button>
 
           <p className="text-center text-sm text-gray-500">
             Já tem conta?{" "}
-            <Link
-              href="/login"
-              className="font-medium"
-              style={{ color: "#2a7d6e" }}
-            >
+            <Link href="/login" className="font-medium text-primary">
               Entrar
             </Link>
           </p>

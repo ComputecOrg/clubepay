@@ -19,8 +19,7 @@ export default function ErrorPage({
         </p>
         <button
           onClick={reset}
-          className="px-6 py-3 rounded-lg text-white font-semibold"
-          style={{ backgroundColor: "#2a7d6e" }}
+          className="px-6 py-3 rounded-lg text-white font-semibold bg-primary"
         >
           Tentar novamente
         </button>

@@ -51,8 +51,7 @@ export default function PlanCard({ plan, slug }: PlanCardProps) {
 
       <Link
         href={`/assinar/${slug}?plan=${plan.id}`}
-        className="mt-2 block w-full rounded-xl py-3 text-center font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ backgroundColor: "#d4a853" }}
+        className="mt-2 block w-full rounded-xl py-3 text-center font-semibold text-white transition-opacity hover:opacity-90 bg-accent"
       >
         Assinar agora
       </Link>

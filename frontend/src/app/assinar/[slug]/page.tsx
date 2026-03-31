@@ -224,8 +224,7 @@ export default function AssinarPage() {
           </p>
           <button
             onClick={() => router.push("/meu-plano")}
-            className="mt-6 rounded-xl px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#2a7d6e" }}
+            className="mt-6 rounded-xl px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 bg-primary"
           >
             Ver meu plano
           </button>
@@ -265,7 +264,7 @@ export default function AssinarPage() {
             <select
               value={selectedPlanId}
               onChange={(e) => setSelectedPlanId(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+              className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">Selecione...</option>
               {plans.map((p) => (
@@ -292,7 +291,7 @@ export default function AssinarPage() {
                 required
                 value={cpf}
                 onChange={(e) => setCpf(formatCPF(e.target.value))}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="000.000.000-00"
                 maxLength={14}
               />
@@ -301,8 +300,7 @@ export default function AssinarPage() {
             <button
               type="submit"
               disabled={submitting || !selectedPlanId}
-              className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: "#2a7d6e" }}
+              className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
             >
               {submitting ? "Assinando..." : "Assinar"}
             </button>
@@ -349,7 +347,7 @@ export default function AssinarPage() {
                     required
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -364,7 +362,7 @@ export default function AssinarPage() {
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Sua senha"
                   />
                 </div>
@@ -372,8 +370,7 @@ export default function AssinarPage() {
                 <button
                   type="submit"
                   disabled={submitting || !selectedPlanId}
-                  className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: "#2a7d6e" }}
+                  className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
                 >
                   {submitting ? "Entrando..." : "Entrar e assinar"}
                 </button>
@@ -393,7 +390,7 @@ export default function AssinarPage() {
                     required
                     value={subName}
                     onChange={(e) => setSubName(e.target.value)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Maria Silva"
                   />
                 </div>
@@ -408,7 +405,7 @@ export default function AssinarPage() {
                     required
                     value={subEmail}
                     onChange={(e) => setSubEmail(e.target.value)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -423,7 +420,7 @@ export default function AssinarPage() {
                     required
                     value={subPhone}
                     onChange={(e) => setSubPhone(formatPhone(e.target.value))}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="(11) 99999-9999"
                   />
                 </div>
@@ -439,7 +436,7 @@ export default function AssinarPage() {
                     minLength={8}
                     value={subPassword}
                     onChange={(e) => setSubPassword(e.target.value)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7d6e]"
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
                     placeholder="Minimo 8 caracteres"
                   />
                 </div>
@@ -447,8 +444,7 @@ export default function AssinarPage() {
                 <button
                   type="submit"
                   disabled={submitting || !selectedPlanId}
-                  className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: "#2a7d6e" }}
+                  className="w-full rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
                 >
                   {submitting ? "Criando conta..." : "Criar conta e assinar"}
                 </button>

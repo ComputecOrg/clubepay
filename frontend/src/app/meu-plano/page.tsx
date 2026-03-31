@@ -149,7 +149,7 @@ export default function MeuPlanoPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="mx-auto max-w-lg">
-          <h1 className="text-xl font-bold" style={{ color: "#2a7d6e" }}>
+          <h1 className="text-xl font-bold text-primary">
             ClubePay
           </h1>
         </div>
@@ -220,8 +220,7 @@ export default function MeuPlanoPage() {
               </code>
               <button
                 onClick={handleShareReferral}
-                className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#d4a853" }}
+                className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 bg-accent"
               >
                 Indicar amigo
               </button>

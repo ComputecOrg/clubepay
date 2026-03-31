@@ -178,8 +178,7 @@ export default function PlanosPage() {
           <h1 className="text-xl font-bold text-gray-900">Meus Planos</h1>
           <Link
             href="/dashboard"
-            className="text-sm font-medium transition-colors hover:opacity-80"
-            style={{ color: "#2a7d6e" }}
+            className="text-sm font-medium transition-colors hover:opacity-80 text-primary"
           >
             Voltar ao Dashboard
           </Link>
@@ -196,8 +195,7 @@ export default function PlanosPage() {
         {!showForm && (
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="w-full rounded-2xl py-4 text-lg font-bold text-white transition-opacity hover:opacity-90 shadow-md"
-            style={{ backgroundColor: "#2a7d6e" }}
+            className="w-full rounded-2xl py-4 text-lg font-bold text-white transition-opacity hover:opacity-90 shadow-md bg-primary"
           >
             + Criar novo plano
           </button>
@@ -284,8 +282,7 @@ export default function PlanosPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: "#2a7d6e" }}
+                className="flex-1 rounded-xl py-3 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 bg-primary"
               >
                 {submitting ? "Salvando..." : editingPlan ? "Atualizar" : "Criar plano"}
               </button>

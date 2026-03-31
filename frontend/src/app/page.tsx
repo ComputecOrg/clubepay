@@ -5,10 +5,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="text-center max-w-lg flex flex-col gap-6">
         <div>
-          <h1
-            className="text-5xl font-bold tracking-tight"
-            style={{ color: "#2a7d6e" }}
-          >
+          <h1 className="text-5xl font-bold tracking-tight text-primary">
             ClubePay
           </h1>
           <p className="mt-3 text-xl text-gray-600">
@@ -24,8 +21,7 @@ export default function Home() {
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Link
             href="/register"
-            className="rounded-xl px-8 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#2a7d6e" }}
+            className="rounded-xl px-8 py-3 text-base font-semibold text-white transition-opacity hover:opacity-90 bg-primary"
           >
             Criar meu clube
           </Link>
