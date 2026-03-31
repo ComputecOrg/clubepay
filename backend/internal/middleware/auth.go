@@ -16,7 +16,8 @@ const (
 	roleKey   contextKey = "role"
 )
 
-const authCookieName = "clubepay_token"
+// AuthCookieName é o nome do cookie HttpOnly que armazena o JWT de autenticação.
+const AuthCookieName = "clubepay_token"
 
 func Auth(jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -42,7 +43,7 @@ func Auth(jwtSecret string) func(http.Handler) http.Handler {
 
 // extractToken lê o token JWT do cookie HttpOnly primeiro, com fallback para o header Authorization.
 func extractToken(r *http.Request) string {
-	if cookie, err := r.Cookie(authCookieName); err == nil && cookie.Value != "" {
+	if cookie, err := r.Cookie(AuthCookieName); err == nil && cookie.Value != "" {
 		return cookie.Value
 	}
 

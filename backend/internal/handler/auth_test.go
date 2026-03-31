@@ -489,13 +489,14 @@ func TestLogin_SetsHttpOnlyCookie(t *testing.T) {
 
 	var tokenCookie *http.Cookie
 	for _, c := range rr.Result().Cookies() {
-		if c.Name == "clubepay_token" {
+		if c.Name == middleware.AuthCookieName {
 			tokenCookie = c
 			break
 		}
 	}
 	require.NotNil(t, tokenCookie, "deve definir cookie clubepay_token")
 	assert.True(t, tokenCookie.HttpOnly, "cookie deve ser HttpOnly")
+	assert.True(t, tokenCookie.Secure, "cookie deve ter flag Secure")
 	assert.NotEmpty(t, tokenCookie.Value)
 	assert.Equal(t, "/", tokenCookie.Path)
 	assert.Greater(t, tokenCookie.MaxAge, 0)
@@ -522,13 +523,14 @@ func TestRegisterOwner_SetsHttpOnlyCookie(t *testing.T) {
 
 	var tokenCookie *http.Cookie
 	for _, c := range rr.Result().Cookies() {
-		if c.Name == "clubepay_token" {
+		if c.Name == middleware.AuthCookieName {
 			tokenCookie = c
 			break
 		}
 	}
 	require.NotNil(t, tokenCookie, "deve definir cookie clubepay_token")
 	assert.True(t, tokenCookie.HttpOnly, "cookie deve ser HttpOnly")
+	assert.True(t, tokenCookie.Secure, "cookie deve ter flag Secure")
 	assert.NotEmpty(t, tokenCookie.Value)
 }
 
@@ -551,13 +553,14 @@ func TestRegisterSubscriber_SetsHttpOnlyCookie(t *testing.T) {
 
 	var tokenCookie *http.Cookie
 	for _, c := range rr.Result().Cookies() {
-		if c.Name == "clubepay_token" {
+		if c.Name == middleware.AuthCookieName {
 			tokenCookie = c
 			break
 		}
 	}
 	require.NotNil(t, tokenCookie, "deve definir cookie clubepay_token")
 	assert.True(t, tokenCookie.HttpOnly, "cookie deve ser HttpOnly")
+	assert.True(t, tokenCookie.Secure, "cookie deve ter flag Secure")
 	assert.NotEmpty(t, tokenCookie.Value)
 }
 
