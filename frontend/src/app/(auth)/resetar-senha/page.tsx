@@ -148,7 +148,7 @@ export default function ResetarSenhaPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary">
-            ClubePay
+            AssinaPix
           </h1>
           <p className="mt-2 text-gray-500">Redefinir senha</p>
         </div>

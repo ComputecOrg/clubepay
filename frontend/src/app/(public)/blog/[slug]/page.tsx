@@ -19,16 +19,24 @@ export async function generateMetadata({
   const post = await getBlogPost(params.slug);
   if (!post) {
     return {
-      title: 'Artigo não encontrado | ClubePay',
+      title: 'Artigo não encontrado',
     };
   }
+  const description = post.frontmatter.excerpt || post.content.substring(0, 160);
   return {
-    title: `${post.frontmatter.title} | ClubePay`,
-    description: post.frontmatter.excerpt || post.content.substring(0, 160),
+    title: post.frontmatter.title,
+    description,
+    alternates: {
+      canonical: `https://assinapix.com.br/blog/${params.slug}`,
+    },
     openGraph: {
       title: post.frontmatter.title,
       description: post.frontmatter.excerpt,
       type: 'article',
+      url: `https://assinapix.com.br/blog/${params.slug}`,
+      siteName: 'AssinaPix',
+      publishedTime: post.frontmatter.date,
+      authors: post.frontmatter.author ? [post.frontmatter.author] : undefined,
     },
   };
 }

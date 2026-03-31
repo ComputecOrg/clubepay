@@ -127,7 +127,7 @@ export default function DashboardPage() {
               {business?.name ?? "Dashboard"}
             </h1>
             <p className="text-sm text-gray-500">
-              clubepay.com/{business?.slug}
+              assinapix.com.br/{business?.slug}
             </p>
           </div>
           <div className="flex items-center gap-4">

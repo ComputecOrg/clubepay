@@ -118,7 +118,7 @@ export default function MeuPlanoPage() {
   }
 
   function handleShareReferral() {
-    const text = `Use meu código ${referralCode} no ClubePay e ganhe 10% de desconto!`;
+    const text = `Use meu código ${referralCode} no AssinaPix e ganhe 10% de desconto!`;
     if (navigator.share) {
       navigator.share({ text });
     } else {
@@ -150,7 +150,7 @@ export default function MeuPlanoPage() {
       <header className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="mx-auto max-w-lg">
           <h1 className="text-xl font-bold text-primary">
-            ClubePay
+            AssinaPix
           </h1>
         </div>
       </header>
