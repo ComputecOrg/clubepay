@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -218,4 +219,93 @@ func TestReconcile_InvalidSecret(t *testing.T) {
 	h.Reconcile(rr, req)
 
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+// TestDunningFlow_OvdGraceBlockReactivate testa o fluxo completo de dunning:
+// pagamento atrasa → grace de 3 dias → cron bloqueia → pagamento chega → reativado.
+func TestDunningFlow_OvdGraceBlockReactivate(t *testing.T) {
+	pool := testutil.SetupTestDB(t)
+	queries := repository.New(pool)
+	cfg := &config.Config{
+		JWTSecret:  "test-secret-key",
+		CronSecret: "test-cron-secret",
+	}
+	mockPSP := &psp.MockPSP{}
+	mockEmail := &email.MockSender{}
+	h := handler.New(queries, cfg, mockPSP, mockEmail)
+
+	owner := testutil.SeedOwner(t, queries, "dunningowner@test.com", "Dunning Owner")
+	biz := testutil.SeedBusiness(t, queries, owner.ID, "Dunning Café", "dunning-cafe")
+	plan := testutil.SeedPlan(t, queries, biz.ID, "Dunning Plan", 2990, "daily", 1)
+	subscriber := testutil.SeedSubscriber(t, queries, "dunningsub@test.com", "Dunning Sub", "11999990009")
+
+	// Etapa 1: Assinatura ativa
+	sub, err := queries.CreateSubscription(context.Background(), repository.CreateSubscriptionParams{
+		PlanID:            plan.ID,
+		SubscriberID:      subscriber.ID,
+		BusinessID:        biz.ID,
+		PspSubscriptionID: pgtype.Text{String: "sub_dunning_e2e", Valid: true},
+		Status:            "active",
+		PeriodEnd:         pgtype.Timestamptz{Time: time.Now().AddDate(0, 1, 0), Valid: true},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "active", sub.Status)
+
+	// Etapa 2: Webhook de pagamento atrasado → grace
+	overduePayload := map[string]interface{}{
+		"event": "PAYMENT_OVERDUE",
+		"payment": map[string]interface{}{
+			"subscription": "sub_dunning_e2e",
+			"status":       "OVERDUE",
+		},
+	}
+	ob, _ := json.Marshal(overduePayload)
+	req := httptest.NewRequest(http.MethodPost, "/api/psp/webhook", bytes.NewReader(ob))
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	h.PSPWebhook(rr, req)
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	afterOverdue, err := queries.GetSubscriptionByID(context.Background(), sub.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "grace", afterOverdue.Status, "após PAYMENT_OVERDUE deve entrar em grace")
+	assert.True(t, afterOverdue.GraceDeadline.Valid, "grace_deadline deve estar definido")
+
+	// Etapa 3: Simular 3 dias passados → deadline vencido
+	pastDeadline := time.Now().Add(-1 * time.Hour)
+	err = queries.UpdateSubscriptionGrace(context.Background(), repository.UpdateSubscriptionGraceParams{
+		ID:            sub.ID,
+		GraceDeadline: pgtype.Timestamptz{Time: pastDeadline, Valid: true},
+	})
+	require.NoError(t, err)
+
+	// Etapa 4: Cron reconcilia → bloqueia
+	cronReq := httptest.NewRequest(http.MethodPost, "/api/cron/reconcile", nil)
+	cronReq.Header.Set("X-Cron-Secret", "test-cron-secret")
+	cronRR := httptest.NewRecorder()
+	h.Reconcile(cronRR, cronReq)
+	require.Equal(t, http.StatusOK, cronRR.Code)
+
+	afterBlock, err := queries.GetSubscriptionByID(context.Background(), sub.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "blocked", afterBlock.Status, "após cron com grace expirado deve estar bloqueado")
+
+	// Etapa 5: Pagamento chega → webhook reativa
+	confirmedPayload := map[string]interface{}{
+		"event": "PAYMENT_CONFIRMED",
+		"payment": map[string]interface{}{
+			"subscription": "sub_dunning_e2e",
+			"status":       "CONFIRMED",
+		},
+	}
+	cb, _ := json.Marshal(confirmedPayload)
+	req2 := httptest.NewRequest(http.MethodPost, "/api/psp/webhook", bytes.NewReader(cb))
+	req2.Header.Set("Content-Type", "application/json")
+	rr2 := httptest.NewRecorder()
+	h.PSPWebhook(rr2, req2)
+	require.Equal(t, http.StatusOK, rr2.Code)
+
+	afterReactivate, err := queries.GetSubscriptionByID(context.Background(), sub.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "active", afterReactivate.Status, "após PAYMENT_CONFIRMED deve estar ativo novamente")
 }

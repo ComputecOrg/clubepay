@@ -9,7 +9,7 @@ dev-frontend:
 
 # Tests
 test-backend:
-	cd backend && go test ./...
+	cd backend && go test -p 1 ./...
 
 test-frontend:
 	cd frontend && npx vitest run
