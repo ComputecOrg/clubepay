@@ -33,7 +33,8 @@ func main() {
 	}
 
 	// Connect to PostgreSQL
-	ctx := context.Background()
+	ctx, dbCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer dbCancel()
 	pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)

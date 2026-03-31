@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -117,7 +118,10 @@ func cleanTables(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 	tables := []string{"usages", "referrals", "subscriptions", "plans", "businesses", "password_resets", "users"}
 	for _, table := range tables {
-		if _, err := pool.Exec(context.Background(), "DELETE FROM "+table); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		_, err := pool.Exec(ctx, "DELETE FROM "+table)
+		cancel()
+		if err != nil {
 			t.Fatalf("failed to clean table %s: %v", table, err)
 		}
 	}
