@@ -36,17 +36,25 @@ type Handler struct {
 }
 
 func New(q *repository.Queries, cfg *config.Config, p psp.PSP, e email.Sender) *Handler {
+	// Create cost providers for infrastructure cost tracking
+	providers := []provider.CostProvider{
+		provider.NewHostingerProvider(cfg),
+		provider.NewClaudeAPIProvider(cfg),
+		provider.NewBrevoProvider(cfg),
+	}
+
 	return &Handler{
-		Auth:          service.NewAuthService(q, cfg, e),
-		Business:      service.NewBusinessService(q),
-		Plans:         service.NewPlanService(q),
-		Subscriptions: service.NewSubscriptionService(q, p, e),
-		Usage:         service.NewUsageService(q),
-		Referrals:     service.NewReferralService(q),
-		Config:        cfg,
-		Queries:       q,
-		PSP:           p,
-		Email:         e,
+		Auth:           service.NewAuthService(q, cfg, e),
+		Business:       service.NewBusinessService(q),
+		Plans:          service.NewPlanService(q),
+		Subscriptions:  service.NewSubscriptionService(q, p, e),
+		Usage:          service.NewUsageService(q),
+		Referrals:      service.NewReferralService(q),
+		Config:         cfg,
+		Queries:        q,
+		PSP:            p,
+		Email:          e,
+		CostAggregator: provider.NewAggregator(providers),
 	}
 }
 
@@ -91,11 +99,13 @@ func handleServiceError(w http.ResponseWriter, err error) {
 }
 
 // CalculateTotalInfrastructureCost calculates total infrastructure costs from all providers
+// Returns 0 if aggregator not configured or all providers fail (non-blocking behavior)
 func (h *Handler) CalculateTotalInfrastructureCost(ctx context.Context) int64 {
 	if h.CostAggregator == nil {
 		return 0
 	}
-	return h.CostAggregator.GetTotalInfrastructureCost(ctx)
+	total, _ := h.CostAggregator.GetTotalInfrastructureCost(ctx)
+	return total
 }
 
 // SendSpendingAlerts checks all businesses and sends alerts if thresholds are reached
