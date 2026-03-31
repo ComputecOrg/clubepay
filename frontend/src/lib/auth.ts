@@ -1,14 +1,15 @@
+const SESSION_COOKIE = "clubepay_session";
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("clubepay_token");
+  const match = document.cookie.match(/(?:^|;\s*)clubepay_session=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem("clubepay_token", token);
-  document.cookie = `clubepay_token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  document.cookie = `${SESSION_COOKIE}=${encodeURIComponent(token)}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax`;
 }
 
 export function clearToken(): void {
-  localStorage.removeItem("clubepay_token");
-  document.cookie = "clubepay_token=; path=/; max-age=0; path=/";
+  document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
 }

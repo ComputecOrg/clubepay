@@ -120,3 +120,52 @@ func TestAuth_MalformedHeader(t *testing.T) {
 	handler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusUnauthorized, rr.Code)
 }
+
+func TestAuthMiddleware_ValidCookieToken(t *testing.T) {
+	secret := "test-secret"
+	token, _ := domain.GenerateJWT(1, "owner", secret, 1*time.Hour)
+
+	handler := middleware.Auth(secret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.UserIDFromContext(r.Context())
+		role := middleware.RoleFromContext(r.Context())
+		assert.Equal(t, int64(1), userID)
+		assert.Equal(t, "owner", role)
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: "clubepay_token", Value: token})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+}
+
+func TestAuthMiddleware_InvalidCookieToken(t *testing.T) {
+	handler := middleware.Auth("secret")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("should not be called")
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: "clubepay_token", Value: "invalid-token"})
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusUnauthorized, rr.Code)
+}
+
+func TestAuthMiddleware_CookieTakesPriorityOverInvalidHeader(t *testing.T) {
+	secret := "test-secret"
+	token, _ := domain.GenerateJWT(2, "subscriber", secret, 1*time.Hour)
+
+	handler := middleware.Auth(secret)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := middleware.UserIDFromContext(r.Context())
+		assert.Equal(t, int64(2), userID)
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: "clubepay_token", Value: token})
+	// Even with no Authorization header, cookie should work
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+}

@@ -6,6 +6,21 @@ import (
 	"github.com/clubepay/backend/internal/domain"
 )
 
+const jwtCookieName = "clubepay_token"
+const jwtCookieMaxAge = 86400 // 24 horas
+
+// setAuthCookie define o cookie HttpOnly com o JWT de autenticação.
+func setAuthCookie(w http.ResponseWriter, token string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     jwtCookieName,
+		Value:    token,
+		Path:     "/",
+		MaxAge:   jwtCookieMaxAge,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+}
+
 // RegisterOwner creates an owner user and a business, then returns a JWT.
 // POST /api/auth/register
 func (h *Handler) RegisterOwner(w http.ResponseWriter, r *http.Request) {
@@ -26,6 +41,7 @@ func (h *Handler) RegisterOwner(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	setAuthCookie(w, resp.Token)
 	writeJSON(w, http.StatusCreated, resp)
 }
 
@@ -49,6 +65,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	setAuthCookie(w, resp.Token)
 	writeJSON(w, http.StatusOK, resp)
 }
 
@@ -72,6 +89,7 @@ func (h *Handler) RegisterSubscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	setAuthCookie(w, resp.Token)
 	writeJSON(w, http.StatusCreated, resp)
 }
 
