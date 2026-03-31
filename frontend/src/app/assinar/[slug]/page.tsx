@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import { getToken, setToken } from "@/lib/auth";
+import { getToken, setToken, setRole, getRole } from "@/lib/auth";
 
 interface Plan {
   id: string;
@@ -24,7 +24,7 @@ interface SubscribeResponse {
 }
 
 interface AuthResponse {
-  token: string;
+  user: { role: string };
 }
 
 function formatPrice(cents: number): string {
@@ -48,15 +48,6 @@ function formatPhone(value: string): string {
   if (digits.length <= 2) return `(${digits}`;
   if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
   return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-}
-
-function getTokenRole(token: string): string | null {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.role || null;
-  } catch {
-    return null;
-  }
 }
 
 export default function AssinarPage() {
@@ -109,7 +100,7 @@ export default function AssinarPage() {
 
   useEffect(() => {
     const token = getToken();
-    const isSubscriber = token ? getTokenRole(token) === "subscriber" : false;
+    const isSubscriber = token ? getRole() === "subscriber" : false;
     setIsLoggedIn(isSubscriber);
     fetchPlans();
   }, [fetchPlans]);
@@ -119,15 +110,12 @@ export default function AssinarPage() {
     setError("");
     setSubmitting(true);
 
-    const token = getToken();
-    if (!token) return;
+    if (!getToken()) return;
 
     try {
-      await api.post<SubscribeResponse>(
-        "/api/subscribe",
-        { plan_id: Number(selectedPlanId) },
-        token
-      );
+      await api.post<SubscribeResponse>("/api/subscribe", {
+        plan_id: Number(selectedPlanId),
+      });
       setSuccess(true);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -150,13 +138,12 @@ export default function AssinarPage() {
         email: loginEmail,
         password: loginPassword,
       });
-      setToken(authData.token);
+      setToken();
+      setRole(authData.user.role);
 
-      await api.post<SubscribeResponse>(
-        "/api/subscribe",
-        { plan_id: Number(selectedPlanId) },
-        authData.token
-      );
+      await api.post<SubscribeResponse>("/api/subscribe", {
+        plan_id: Number(selectedPlanId),
+      });
       setSuccess(true);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -184,13 +171,12 @@ export default function AssinarPage() {
           phone: subPhone,
         }
       );
-      setToken(authData.token);
+      setToken();
+      setRole(authData.user.role);
 
-      await api.post<SubscribeResponse>(
-        "/api/subscribe",
-        { plan_id: Number(selectedPlanId) },
-        authData.token
-      );
+      await api.post<SubscribeResponse>("/api/subscribe", {
+        plan_id: Number(selectedPlanId),
+      });
       setSuccess(true);
     } catch (err) {
       if (err instanceof ApiError) {

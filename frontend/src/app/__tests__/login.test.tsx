@@ -31,6 +31,7 @@ vi.mock("@/lib/api", () => ({
 vi.mock("@/lib/auth", () => ({
   getToken: vi.fn(),
   setToken: vi.fn(),
+  setRole: vi.fn(),
   clearToken: vi.fn(),
 }));
 
@@ -54,7 +55,8 @@ describe("LoginPage", () => {
   });
 
   it("submits form and redirects to dashboard on success", async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({ token: "jwt-token-123" });
+    // Backend retorna user sem token (JWT vem via cookie HttpOnly)
+    vi.mocked(api.post).mockResolvedValueOnce({ user: { role: "owner" } });
 
     render(<LoginPage />);
 
@@ -73,7 +75,8 @@ describe("LoginPage", () => {
       });
     });
 
-    expect(setToken).toHaveBeenCalledWith("jwt-token-123");
+    // setToken sem argumento — JWT gerenciado pelo backend via HttpOnly cookie
+    expect(setToken).toHaveBeenCalledWith();
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
   });
 

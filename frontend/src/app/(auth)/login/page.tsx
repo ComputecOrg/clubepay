@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
-import { setToken } from "@/lib/auth";
+import { setToken, setRole } from "@/lib/auth";
 
 interface LoginResponse {
-  token: string;
+  user: { role: string };
 }
 
 export default function LoginPage() {
@@ -27,7 +27,8 @@ export default function LoginPage() {
         email,
         password,
       });
-      setToken(data.token);
+      setToken();
+      setRole(data.user.role);
       router.push("/dashboard");
     } catch (err) {
       if (err instanceof ApiError) {
