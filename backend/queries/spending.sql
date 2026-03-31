@@ -53,3 +53,8 @@ FROM spending_alerts
 WHERE business_id = $1
 ORDER BY sent_at DESC
 LIMIT $2 OFFSET $3;
+
+-- name: ListAllBusinesses :many
+SELECT id, owner_id, name, slug, segment, address, logo_url, created_at, updated_at
+FROM businesses
+ORDER BY id ASC;
