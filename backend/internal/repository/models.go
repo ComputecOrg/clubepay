@@ -20,6 +20,18 @@ type Business struct {
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
+type MonthlyCost struct {
+	ID                      int64              `json:"id"`
+	BusinessID              int64              `json:"business_id"`
+	Month                   pgtype.Date        `json:"month"`
+	InfrastructureCostCents int64              `json:"infrastructure_cost_cents"`
+	ClaudeApiTokens         int64              `json:"claude_api_tokens"`
+	TotalCostCents          int64              `json:"total_cost_cents"`
+	MonthlyBudgetCents      int64              `json:"monthly_budget_cents"`
+	CreatedAt               pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt               pgtype.Timestamptz `json:"updated_at"`
+}
+
 type PasswordReset struct {
 	ID        int64              `json:"id"`
 	UserID    int64              `json:"user_id"`
@@ -50,6 +62,16 @@ type Referral struct {
 	Code       string             `json:"code"`
 	Active     bool               `json:"active"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type SpendingAlert struct {
+	ID               int64              `json:"id"`
+	BusinessID       int64              `json:"business_id"`
+	MonthlyCostID    int64              `json:"monthly_cost_id"`
+	AlertLevel       string             `json:"alert_level"`
+	ThresholdPercent int32              `json:"threshold_percent"`
+	SentAt           pgtype.Timestamptz `json:"sent_at"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 }
 
 type Subscription struct {
