@@ -28,13 +28,13 @@ func TestLoad_RequiredFields(t *testing.T) {
 		assert.Contains(t, err.Error(), "JWT_SECRET")
 	})
 
-	t.Run("missing SPENDING_ALERT_EMAIL", func(t *testing.T) {
+	t.Run("empty SPENDING_ALERT_EMAIL uses default", func(t *testing.T) {
 		t.Setenv("DATABASE_URL", "postgres://localhost/test")
 		t.Setenv("JWT_SECRET", "test-secret")
 		t.Setenv("SPENDING_ALERT_EMAIL", "")
-		_, err := config.Load()
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "SPENDING_ALERT_EMAIL")
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, "ceo@clubepay.com", cfg.SpendingAlertEmail)
 	})
 }
 
