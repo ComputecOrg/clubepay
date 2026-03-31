@@ -31,6 +31,10 @@ type Config struct {
 	// Analytics (GA4)
 	GA4MeasurementID string
 	GA4APISecret     string
+	// Cost Providers
+	HostingerVPSCostCents int64
+	BrevoEmailCostCents   int64
+	ClaudeAPICostCents    int64
 }
 
 func Load() (*Config, error) {
@@ -56,6 +60,9 @@ func Load() (*Config, error) {
 		CriticalThresholdPct: parseIntEnv("CRITICAL_THRESHOLD_PCT", 95),
 		GA4MeasurementID:     os.Getenv("GA4_MEASUREMENT_ID"),
 		GA4APISecret:         os.Getenv("GA4_API_SECRET"),
+		HostingerVPSCostCents: parseInt64Env("HOSTINGER_VPS_COST_CENTS", 6495), // R$12.99
+		BrevoEmailCostCents:   parseInt64Env("BREVO_EMAIL_COST_CENTS", 0),      // Free tier by default
+		ClaudeAPICostCents:    parseInt64Env("CLAUDE_API_COST_CENTS", 20000),   // $200/month
 	}
 
 	if cfg.DatabaseURL == "" {
