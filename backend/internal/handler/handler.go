@@ -91,11 +91,11 @@ func handleServiceError(w http.ResponseWriter, err error) {
 }
 
 // CalculateTotalInfrastructureCost calculates total infrastructure costs from all providers
-func (h *Handler) CalculateTotalInfrastructureCost(ctx context.Context) (int64, error) {
+func (h *Handler) CalculateTotalInfrastructureCost(ctx context.Context) int64 {
 	if h.CostAggregator == nil {
-		return 0, nil
+		return 0
 	}
-	return h.CostAggregator.GetTotalMonthlyCost(ctx)
+	return h.CostAggregator.GetTotalInfrastructureCost(ctx)
 }
 
 // SendSpendingAlerts checks all businesses and sends alerts if thresholds are reached

@@ -1,6 +1,9 @@
 package provider
 
-import "context"
+import (
+	"context"
+	"log/slog"
+)
 
 // Aggregator collects costs from multiple providers
 type Aggregator struct {
@@ -14,15 +17,19 @@ func NewAggregator(providers []CostProvider) *Aggregator {
 	}
 }
 
-// GetTotalMonthlyCost aggregates costs from all providers
-func (a *Aggregator) GetTotalMonthlyCost(ctx context.Context) (int64, error) {
-	total := int64(0)
-	for _, provider := range a.providers {
-		cost, err := provider.GetMonthlyCost(ctx)
+// GetTotalInfrastructureCost aggregates costs from all providers without blocking on individual failures
+func (a *Aggregator) GetTotalInfrastructureCost(ctx context.Context) int64 {
+	var total int64
+
+	for _, p := range a.providers {
+		cost, err := p.GetMonthlyCost(ctx)
 		if err != nil {
-			return 0, err
+			slog.Error("provider failed to get cost", "error", err)
+			// Continue with other providers (non-blocking)
+			continue
 		}
 		total += cost.CostCents
 	}
-	return total, nil
+
+	return total
 }

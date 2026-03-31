@@ -98,11 +98,8 @@ func (h *Handler) Reconcile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Update infrastructure costs
-	totalInfraCost, err := h.CalculateTotalInfrastructureCost(ctx)
-	if err != nil {
-		slog.Error("reconcile: failed to calculate infrastructure costs", "error", err)
-		// Non-blocking: don't fail reconcile if costs can't be calculated
-	} else if totalInfraCost > 0 {
+	totalInfraCost := h.CalculateTotalInfrastructureCost(ctx)
+	if totalInfraCost > 0 {
 		// Get current month and update costs
 		currentMonth := domain.GetCurrentMonth()
 
