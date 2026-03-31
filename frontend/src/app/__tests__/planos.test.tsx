@@ -89,8 +89,8 @@ describe("PlanosPage", () => {
     // "Criar novo plano" button visible when form is not shown
     expect(screen.getByText("+ Criar novo plano")).toBeInTheDocument();
 
-    // API was called with the token
-    expect(mockApi.get).toHaveBeenCalledWith("/api/plans", "fake-token");
+    // API was called (auth via HttpOnly cookie, no token param)
+    expect(mockApi.get).toHaveBeenCalledWith("/api/plans");
   });
 
   it("shows empty state when no plans", async () => {

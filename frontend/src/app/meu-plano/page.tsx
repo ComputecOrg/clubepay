@@ -72,8 +72,8 @@ export default function MeuPlanoPage() {
 
     try {
       const [planData, referralData] = await Promise.all([
-        api.get<MyPlanResponse>("/api/my-plan", token),
-        api.get<ReferralCodeResponse>("/api/my-referral-code", token),
+        api.get<MyPlanResponse>("/api/my-plan"),
+        api.get<ReferralCodeResponse>("/api/my-referral-code"),
       ]);
       setPlan(planData);
       setReferralCode(referralData.code);
@@ -104,7 +104,7 @@ export default function MeuPlanoPage() {
 
     setCancelLoading(true);
     try {
-      await api.post("/api/cancel", {}, token);
+      await api.post("/api/cancel", {});
       router.push("/");
     } catch (err) {
       if (err instanceof ApiError) {

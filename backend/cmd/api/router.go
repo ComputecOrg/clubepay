@@ -49,6 +49,7 @@ func setupRouter(cfg *config.Config, db DBPinger, h *handler.Handler) http.Handl
 		r.Post("/api/auth/register-subscriber", h.RegisterSubscriber)
 		r.Post("/api/auth/request-password-reset", h.RequestPasswordReset)
 		r.Post("/api/auth/confirm-password-reset", h.ConfirmPasswordReset)
+		r.Post("/api/auth/logout", h.Logout)
 	})
 
 	// Webhook + Cron (custom auth)

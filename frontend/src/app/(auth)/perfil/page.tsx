@@ -45,7 +45,7 @@ export default function PerfilPage() {
     }
 
     api
-      .get<ProfileResponse>("/api/profile", token)
+      .get<ProfileResponse>("/api/profile")
       .then((data) => {
         setEmail(data.user.email);
         setName(data.user.name ?? "");
@@ -75,7 +75,7 @@ export default function PerfilPage() {
 
     setProfileSaving(true);
     try {
-      await api.put<ProfileResponse>("/api/profile", { name, phone }, token);
+      await api.put<ProfileResponse>("/api/profile", { name, phone });
       setProfileSuccess("Dados atualizados com sucesso!");
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
@@ -114,8 +114,7 @@ export default function PerfilPage() {
     try {
       await api.post(
         "/api/profile/change-password",
-        { current_password: currentPassword, new_password: newPassword },
-        token
+        { current_password: currentPassword, new_password: newPassword }
       );
       setPasswordSuccess("Senha alterada com sucesso!");
       setCurrentPassword("");

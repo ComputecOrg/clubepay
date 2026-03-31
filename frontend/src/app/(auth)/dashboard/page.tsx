@@ -67,8 +67,8 @@ export default function DashboardPage() {
 
     try {
       const [bizData, subData] = await Promise.all([
-        api.get<BusinessResponse>("/api/business", token),
-        api.get<SubscriptionsResponse>("/api/subscriptions", token),
+        api.get<BusinessResponse>("/api/business"),
+        api.get<SubscriptionsResponse>("/api/subscriptions"),
       ]);
       setBusiness(bizData.business);
       setSubscriptions(subData.subscriptions ?? []);

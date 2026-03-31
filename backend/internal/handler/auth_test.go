@@ -616,3 +616,26 @@ func TestRegisterSubscriber_MissingFields(t *testing.T) {
 		})
 	}
 }
+
+func TestLogout_ClearsHttpOnlyCookie(t *testing.T) {
+	h := setupHandler(t)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/logout", nil)
+	rr := httptest.NewRecorder()
+
+	h.Logout(rr, req)
+
+	require.Equal(t, http.StatusOK, rr.Code)
+
+	var cleared *http.Cookie
+	for _, c := range rr.Result().Cookies() {
+		if c.Name == "clubepay_token" {
+			cleared = c
+			break
+		}
+	}
+	require.NotNil(t, cleared, "deve enviar Set-Cookie para clubepay_token")
+	assert.Equal(t, 0, cleared.MaxAge, "MaxAge deve ser 0 para remover o cookie")
+	assert.Empty(t, cleared.Value, "valor do cookie deve ser vazio")
+	assert.True(t, cleared.HttpOnly, "cookie removido deve manter flag HttpOnly")
+}
