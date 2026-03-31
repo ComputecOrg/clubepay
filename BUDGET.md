@@ -150,13 +150,13 @@ De acordo com fin/AGENTS.md:
 
 ## 5. Next Actions
 
-- [x] ~~Confirmar custo real Coolify VPS com Ops~~ → Hostinger KVM1 R$12,99/mês ✅
-- [x] ~~Confirmar SMTP provider (free tier ou pago?)~~ → Brevo free tier R$0 ✅
-- [x] ~~Clarificar custo Asaas para ClubePay~~ → R$0 (taxa é do lojista) ✅
+- [x] ~~Setup alerts no Paperclip~~ → Implementado CLU-24 ✅
+- [x] ~~Infraestrutura para rastreamento automático~~ → Phase 2 completa ✅
+- [ ] Real-time provider API integration (Hostinger, Claude usage) — Goh/Fin
+- [ ] CEO dashboard com histórico 3 meses — Rex/Frontend
 - [ ] **Provisionar VPS Hostinger KVM1 (São Paulo)** — Ops/Archie
 - [ ] **Criar conta Brevo e configurar SMTP** — Ops
 - [ ] Adicionar `GetFinancialTransactions()` no psp/asaas.go para dashboard de volume — Rex/Goh
-- [ ] Setup alerts no Paperclip (via scripts ou integração) — Fin
 - [ ] Revisão de custos a cada 3 dias — Fin
 - [ ] Relatório financeiro para o board — Fin
 

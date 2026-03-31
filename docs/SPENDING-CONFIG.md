@@ -215,9 +215,35 @@ WHERE business_id = 1 AND alert_level = 'warning'
 
 ---
 
+## Infrastructure Cost Providers
+
+### Automatic Cost Collection
+
+Daily cron reconciliation automatically collects infrastructure costs from:
+
+1. **Hostinger VPS** - Static cost per month
+   - Env var: `HOSTINGER_VPS_COST_CENTS` (default: 6495 = R$12.99)
+
+2. **Claude API** - Fixed monthly cost
+   - Env var: `CLAUDE_API_COST_CENTS` (default: 20000 = $200)
+
+3. **Brevo SMTP** - Free tier (€0) or paid plan
+   - Env var: `BREVO_EMAIL_COST_CENTS` (default: 0 = free)
+
+Costs are aggregated daily and stored in `monthly_costs.infrastructure_cost_cents`.
+If any provider fails, others continue collecting (non-blocking).
+
+### Future: Real-Time Integration
+
+- Hostinger API: Track actual VPS usage
+- Claude API: Track actual token consumption
+- Brevo API: Track email volume
+
+---
+
 ## Next Steps (CFO Roadmap)
 
-- [ ] **Phase 2**: Automate infrastructure cost updates (from Hostinger API, Claude usage)
+- [x] ~~Phase 2: Automate infrastructure cost updates~~ → Phase 2 completo ✅
 - [ ] **Phase 3**: CEO dashboard + threshold adjustment UI
 - [ ] **Phase 4**: Token consumption tracking
 - [ ] **Phase 5**: Weekly financial reports for board
