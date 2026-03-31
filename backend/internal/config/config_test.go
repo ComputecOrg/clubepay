@@ -13,6 +13,7 @@ func TestLoad_RequiredFields(t *testing.T) {
 	t.Run("missing DATABASE_URL", func(t *testing.T) {
 		t.Setenv("DATABASE_URL", "")
 		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
 		_, err := config.Load()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "DATABASE_URL")
@@ -21,15 +22,26 @@ func TestLoad_RequiredFields(t *testing.T) {
 	t.Run("missing JWT_SECRET", func(t *testing.T) {
 		t.Setenv("DATABASE_URL", "postgres://localhost/test")
 		t.Setenv("JWT_SECRET", "")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
 		_, err := config.Load()
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "JWT_SECRET")
+	})
+
+	t.Run("empty SPENDING_ALERT_EMAIL uses default", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "")
+		cfg, err := config.Load()
+		require.NoError(t, err)
+		assert.Equal(t, "ceo@clubepay.com", cfg.SpendingAlertEmail)
 	})
 }
 
 func TestLoad_Defaults(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://localhost/test")
 	t.Setenv("JWT_SECRET", "test-secret")
+	t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
 	t.Setenv("PORT", "")
 	t.Setenv("ASAAS_URL", "")
 	t.Setenv("SMTP_PORT", "")
@@ -58,6 +70,7 @@ func TestLoad_Defaults(t *testing.T) {
 func TestLoad_AllVars(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://prod/db")
 	t.Setenv("JWT_SECRET", "prod-secret")
+	t.Setenv("SPENDING_ALERT_EMAIL", "alerts@prod.com")
 	t.Setenv("PORT", "9090")
 	t.Setenv("ASAAS_API_KEY", "key123")
 	t.Setenv("ASAAS_URL", "https://api.asaas.com/api/v3")
@@ -175,5 +188,105 @@ func TestParseInt64Env(t *testing.T) {
 		cfg, err := config.Load()
 		require.NoError(t, err)
 		assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents) // fallback value
+	})
+}
+
+func TestLoad_SpendingDefaults(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://localhost/test")
+	t.Setenv("JWT_SECRET", "test-secret")
+	t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+	t.Setenv("MONTHLY_BUDGET_CENTS", "")
+	t.Setenv("WARN_THRESHOLD_PCT", "")
+	t.Setenv("CRITICAL_THRESHOLD_PCT", "")
+
+	cfg, err := config.Load()
+	require.NoError(t, err)
+	assert.Equal(t, int64(500000), cfg.MonthlyBudgetCents) // $5000
+	assert.Equal(t, "alerts@example.com", cfg.SpendingAlertEmail)
+	assert.Equal(t, 80, cfg.WarnThresholdPct)
+	assert.Equal(t, 95, cfg.CriticalThresholdPct)
+}
+
+func TestLoad_SpendingCustomVars(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://localhost/test")
+	t.Setenv("JWT_SECRET", "test-secret")
+	t.Setenv("MONTHLY_BUDGET_CENTS", "1000000")
+	t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+	t.Setenv("WARN_THRESHOLD_PCT", "75")
+	t.Setenv("CRITICAL_THRESHOLD_PCT", "90")
+
+	cfg, err := config.Load()
+	require.NoError(t, err)
+	assert.Equal(t, int64(1000000), cfg.MonthlyBudgetCents)
+	assert.Equal(t, "alerts@example.com", cfg.SpendingAlertEmail)
+	assert.Equal(t, 75, cfg.WarnThresholdPct)
+	assert.Equal(t, 90, cfg.CriticalThresholdPct)
+}
+
+func TestLoad_ThresholdValidation(t *testing.T) {
+	t.Run("warn threshold below 0", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+		t.Setenv("WARN_THRESHOLD_PCT", "-1")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "90")
+		_, err := config.Load()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "WARN_THRESHOLD_PCT")
+	})
+
+	t.Run("warn threshold above 100", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+		t.Setenv("WARN_THRESHOLD_PCT", "101")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "90")
+		_, err := config.Load()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "WARN_THRESHOLD_PCT")
+	})
+
+	t.Run("critical threshold below 0", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+		t.Setenv("WARN_THRESHOLD_PCT", "75")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "-1")
+		_, err := config.Load()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CRITICAL_THRESHOLD_PCT")
+	})
+
+	t.Run("critical threshold above 100", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+		t.Setenv("WARN_THRESHOLD_PCT", "75")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "101")
+		_, err := config.Load()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "CRITICAL_THRESHOLD_PCT")
+	})
+
+	t.Run("warn threshold >= critical threshold", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+		t.Setenv("WARN_THRESHOLD_PCT", "90")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "90")
+		_, err := config.Load()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be less than")
+	})
+
+	t.Run("warn threshold > critical threshold", func(t *testing.T) {
+		t.Setenv("DATABASE_URL", "postgres://localhost/test")
+		t.Setenv("JWT_SECRET", "test-secret")
+		t.Setenv("SPENDING_ALERT_EMAIL", "alerts@example.com")
+		t.Setenv("WARN_THRESHOLD_PCT", "95")
+		t.Setenv("CRITICAL_THRESHOLD_PCT", "90")
+		_, err := config.Load()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be less than")
 	})
 }

@@ -57,6 +57,15 @@ func Load() (*Config, error) {
 	if cfg.JWTSecret == "" {
 		return nil, fmt.Errorf("JWT_SECRET is required")
 	}
+	if cfg.WarnThresholdPct < 0 || cfg.WarnThresholdPct > 100 {
+		return nil, fmt.Errorf("WARN_THRESHOLD_PCT must be between 0 and 100, got %d", cfg.WarnThresholdPct)
+	}
+	if cfg.CriticalThresholdPct < 0 || cfg.CriticalThresholdPct > 100 {
+		return nil, fmt.Errorf("CRITICAL_THRESHOLD_PCT must be between 0 and 100, got %d", cfg.CriticalThresholdPct)
+	}
+	if cfg.WarnThresholdPct >= cfg.CriticalThresholdPct {
+		return nil, fmt.Errorf("WARN_THRESHOLD_PCT (%d) must be less than CRITICAL_THRESHOLD_PCT (%d)", cfg.WarnThresholdPct, cfg.CriticalThresholdPct)
+	}
 
 	return cfg, nil
 }
