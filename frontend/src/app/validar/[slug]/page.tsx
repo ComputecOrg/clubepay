@@ -128,8 +128,7 @@ export default function ValidarPage() {
         <button
           onClick={handleValidate}
           disabled={state === "loading"}
-          className="w-full rounded-2xl py-5 text-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60 shadow-md"
-          style={{ backgroundColor: "#2a7d6e" }}
+          className="w-full rounded-2xl py-5 text-xl font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60 shadow-md bg-primary"
         >
           {state === "loading" ? "Validando..." : "Confirmar uso"}
         </button>

@@ -19,7 +19,7 @@ export default function BusinessQRCode({ slug }: QRCodeProps) {
       <html>
         <head><title>QR Code - ClubePay</title></head>
         <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui">
-          <h2 style="color:#2a7d6e">Escaneie para validar seu uso</h2>
+          <h2 style="color:var(--color-primary)">Escaneie para validar seu uso</h2>
           <div id="qr"></div>
           <p style="margin-top:16px;color:#666">${url}</p>
           <script>window.print();</script>
@@ -39,8 +39,7 @@ export default function BusinessQRCode({ slug }: QRCodeProps) {
       <p className="text-xs text-gray-400 break-all text-center">{url}</p>
       <button
         onClick={handlePrint}
-        className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-        style={{ backgroundColor: "#d4a853" }}
+        className="rounded-xl px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 bg-accent"
       >
         Imprimir QR Code
       </button>
